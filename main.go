@@ -19,12 +19,13 @@ func main() {
 	}
 
 	config := &database.Config{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		Password: os.Getenv("DB_PASS"),
-		User:     os.Getenv("DB_USER"),
-		SSLMode:  os.Getenv("DB_SSLMODE"),
-		DBName:   os.Getenv("DB_NAME"),
+		Host:     os.Getenv("POSTGRES_HOST"),
+		Port:     os.Getenv("POSTGRES_PORT"),
+		Password: os.Getenv("POSTGRES_PASSWORD"),
+		User:     os.Getenv("POSTGRES_USER"),
+		SSLMode:  os.Getenv("POSTGRES_SSLMODE"),
+		DBName:   os.Getenv("POSTGRES_DB"),
+		TimeZone: os.Getenv("POSTGRES_TIMEZONE"),
 	}
 	db, err := database.NewConnection(config)
 	if err != nil {

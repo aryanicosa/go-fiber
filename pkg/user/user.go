@@ -1,13 +1,13 @@
 package user
 
 import (
-	"net/http"
-
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/user/model"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
-
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+	"net/http"
 )
 
 // const USERNAME = "john"
@@ -80,10 +80,25 @@ type Service struct {
 }
 
 type User struct {
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required"`
-	Address  string `json:"address" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Address  string `json:"address"`
+	Password string `json:"password"`
+}
+
+// GenerateUUID generates new UUID
+func GenerateUUID() uuid.UUID {
+	return uuid.New()
+}
+
+func (s *Service) SetupRoutes(app *fiber.App) {
+	api := app.Group("/api")
+	api.Post("/user", s.CreateUser)
+	// api.Post("/user/:id", s.LoginUser)
+	api.Get("/users", s.GetUsers)
+	api.Get("/user/:id", s.GetUser)
+	api.Put("/user/:id", s.UpdateUser)
+	api.Delete("/user/:id", s.DeleteUser)
 }
 
 func (s *Service) CreateUser(c *fiber.Ctx) error {
@@ -107,11 +122,12 @@ func (s *Service) CreateUser(c *fiber.Ctx) error {
 
 	password, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 
-	err = s.DB.Create(User{
+	err = s.DB.Create(&model.Users{
+		ID:       GenerateUUID(),
 		Name:     user.Name,
 		Email:    user.Email,
 		Address:  user.Address,
-		Password: string(password),
+		Password: password,
 	}).Error
 
 	if err != nil {
@@ -121,19 +137,135 @@ func (s *Service) CreateUser(c *fiber.Ctx) error {
 	}
 
 	c.Status(http.StatusOK).JSON(&fiber.Map{
-		"message": "book has been successfully added",
+		"message": "user created!",
 	})
 	return nil
 }
 
-func (s *Service) SetupRoutes(app *fiber.App) {
-	api := app.Group("/api")
-	api.Post("/user", s.CreateUser)
-	// api.Post("/user/:id", s.LoginUser)
-	// api.Get("/user", s.GetUsers)
-	// api.Get("/user/:id", s.GetUser)
-	// api.Put("/user/:id", s.UpdateUser)
-	// api.Delete("/user/:id", s.DeleteUser)
+func (s *Service) GetUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	user := &model.Users{}
+
+	if id == "" {
+		c.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "user id can not empty",
+		})
+		return nil
+	}
+
+	err := s.DB.Where("id = ?", id).First(user).Error
+	if err != nil {
+		c.Status(http.StatusNotFound).JSON(&fiber.Map{
+			"message": "user not found",
+		})
+		return err
+	}
+
+	c.Status(http.StatusOK).JSON(&fiber.Map{
+		"data": user,
+	})
+
+	return nil
+}
+
+func (s *Service) GetUsers(c *fiber.Ctx) error {
+	users := &[]model.Users{}
+
+	err := s.DB.Find(users).Error
+	if err != nil {
+		c.Status(http.StatusBadRequest).JSON(
+			&fiber.Map{"message": "could not get users from db"})
+		return err
+	}
+
+	c.Status(http.StatusOK).JSON(&fiber.Map{
+		"data": users,
+	})
+	return nil
+}
+
+func (s *Service) UpdateUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	userModel := &model.Users{}
+	user := User{}
+
+	if id == "" {
+		c.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "user id can not empty",
+		})
+		return nil
+	}
+
+	err := c.BodyParser(&user)
+	if err != nil {
+		c.Status(http.StatusUnprocessableEntity).JSON(
+			&fiber.Map{"message": "request failed"})
+		return err
+	}
+	validator := validator.New()
+	err = validator.Struct(User{})
+
+	if err != nil {
+		c.Status(http.StatusUnprocessableEntity).JSON(
+			&fiber.Map{"message": err},
+		)
+		return err
+	}
+
+	password, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+
+	err = s.DB.Where("id = ?", id).First(userModel).Error
+	if err != nil {
+		c.Status(http.StatusNotFound).JSON(&fiber.Map{
+			"message": "user not found",
+		})
+		return err
+	}
+
+	err = s.DB.Updates(&model.Users{
+		ID:       userModel.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		Address:  user.Address,
+		Password: password,
+	}).Error
+
+	if err != nil {
+		c.Status(http.StatusBadRequest).JSON(
+			&fiber.Map{"message": "could not update user"})
+		return err
+	}
+
+	c.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "user updated",
+	})
+
+	return nil
+}
+
+func (s *Service) DeleteUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	user := &model.Users{}
+
+	if id == "" {
+		c.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "user id can not empty",
+		})
+		return nil
+	}
+
+	err := s.DB.Where("id = ?", id).Delete(user).Error
+	if err != nil {
+		c.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"message": "unable to delete user",
+		})
+	}
+
+	c.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "user deleted",
+	})
+
+	return nil
 }
 
 // func (db *Database) LoginUser(context *fiber.Ctx) error {
@@ -188,126 +320,5 @@ func (s *Service) SetupRoutes(app *fiber.App) {
 // 	if err != nil {
 // 		http.Error(w, err.Error(), http.StatusInternalServerError)
 // 		return
-// 	}
-// }
-
-// func GetUsers(db *sql.DB) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		users, err := db.Query("SELECT id, name, email, address FROM user")
-// 		if err != nil {
-// 			panic(err)
-// 		}
-
-// 		data := []model.User{}
-
-// 		for users.Next() {
-// 			var user model.User
-
-// 			err = users.Scan(&user.ID, &user.Name, &user.Email, &user.Address)
-// 			if err != nil {
-// 				panic(err)
-// 			}
-
-// 			data = append(data, user)
-// 		}
-
-// 		w.WriteHeader(http.StatusOK)
-// 		w.Header().Set("Content-Type", "application/json")
-
-// 		err = json.NewEncoder(w).Encode(data)
-// 		if err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-// 	}
-// }
-
-// func GetUser(db *sql.DB) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-
-// 		data := model.User{}
-
-// 		vars := mux.Vars(r)
-// 		id, err := strconv.Atoi(vars["userId"])
-
-// 		if err != nil || id < 1 {
-// 			http.NotFound(w, r)
-// 			return
-// 		}
-
-// 		err = db.QueryRow("SELECT id, name, email, address FROM user WHERE id = ?", id).
-// 			Scan(&data.ID, &data.Name, &data.Email, &data.Address)
-// 		if err != nil {
-// 			http.Error(w, "User not found", http.StatusNotFound)
-// 			return
-// 		}
-
-// 		w.WriteHeader(http.StatusOK)
-// 		w.Header().Set("Content-Type", "application/json")
-
-// 		err = json.NewEncoder(w).Encode(data)
-// 		if err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-// 	}
-// }
-
-// func UpdateUser(db *sql.DB) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		data := model.User{}
-
-// 		vars := mux.Vars(r)
-// 		id, err := strconv.Atoi(vars["userId"])
-
-// 		if err != nil || id < 1 {
-// 			http.NotFound(w, r)
-// 			return
-// 		}
-
-// 		decoder := json.NewDecoder(r.Body)
-// 		if err := decoder.Decode(&data); err != nil {
-// 			http.Error(w, err.Error(), http.StatusInternalServerError)
-// 			return
-// 		}
-
-// 		_, err = db.Exec("UPDATE user SET name = ?, email = ?, address = ? WHERE id = ?",
-// 			data.Name, data.Email, data.Address, id)
-
-// 		if err != nil {
-// 			http.Error(w, "User not found", http.StatusNotFound)
-// 			return
-// 		}
-
-// 		w.WriteHeader(http.StatusNoContent)
-// 	}
-// }
-
-// func DeleteUser(db *sql.DB) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		data := model.User{}
-
-// 		vars := mux.Vars(r)
-// 		id, err := strconv.Atoi(vars["userId"])
-
-// 		if err != nil || id < 1 {
-// 			http.NotFound(w, r)
-// 			return
-// 		}
-
-// 		err = db.QueryRow("SELECT id, name, email, address FROM user WHERE id = ?", id).
-// 			Scan(&data.ID, &data.Name, &data.Email, &data.Address)
-// 		if err != nil {
-// 			http.Error(w, "User not found", http.StatusNotFound)
-// 			return
-// 		}
-
-// 		_, err = db.Exec("DELETE FROM user WHERE id = ?", id)
-// 		if err != nil {
-// 			http.Error(w, "Failed to delete", http.StatusNotFound)
-// 			return
-// 		}
-
-// 		w.WriteHeader(http.StatusNoContent)
 // 	}
 // }
