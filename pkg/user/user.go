@@ -1,79 +1,23 @@
 package user
 
 import (
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/user/model"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"net/http"
 )
 
-// const USERNAME = "john"
-// const PASSWORD = "doe"
-
-// const SecretKey = "TheSecretKey"
-
-// // JwtClaim adds email as a claim to the token
-// type JwtClaim struct {
-// 	Email string
-// 	jwt.StandardClaims
-// }
-
-// func MiddlewareBasicAuth(next http.HandlerFunc) http.HandlerFunc {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		username, password, ok := r.BasicAuth()
-// 		if !ok {
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			return
-// 		}
-
-// 		isValid := (username == USERNAME && password == PASSWORD)
-// 		if !isValid {
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			w.Write([]byte("wrong username/password"))
-// 			return
-// 		}
-
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
-
-// func MiddlewareBearerAuth(next http.HandlerFunc) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		claims := &JwtClaim{}
-
-// 		authToken := r.Header.Get("authorization")
-// 		splitToken := strings.Split(authToken, "Bearer ")
-// 		authToken = splitToken[1]
-
-// 		token, err := jwt.ParseWithClaims(authToken, claims, func(t *jwt.Token) (interface{}, error) {
-// 			return []byte(SecretKey), nil
-// 		})
-
-// 		if err != nil {
-// 			fmt.Println(err)
-// 			if err == jwt.ErrSignatureInvalid {
-// 				w.WriteHeader(http.StatusUnauthorized)
-// 				w.Write([]byte("unauthorized access"))
-// 				return
-// 			}
-
-// 			w.WriteHeader(http.StatusBadRequest)
-// 			w.Write([]byte("wrong auth type"))
-// 			return
-// 		}
-
-// 		if !token.Valid {
-// 			w.WriteHeader(http.StatusUnauthorized)
-// 			w.Write([]byte("unauthorized access"))
-// 			return
-// 		}
-
-// 		next.ServeHTTP(w, r)
-// 	}
-// }
+type JwtClaim struct {
+	Email string
+	jwt.StandardClaims
+}
 
 type Service struct {
 	DB *gorm.DB
@@ -89,16 +33,6 @@ type User struct {
 // GenerateUUID generates new UUID
 func GenerateUUID() uuid.UUID {
 	return uuid.New()
-}
-
-func (s *Service) SetupRoutes(app *fiber.App) {
-	api := app.Group("/api")
-	api.Post("/user", s.CreateUser)
-	// api.Post("/user/:id", s.LoginUser)
-	api.Get("/users", s.GetUsers)
-	api.Get("/user/:id", s.GetUser)
-	api.Put("/user/:id", s.UpdateUser)
-	api.Delete("/user/:id", s.DeleteUser)
 }
 
 func (s *Service) CreateUser(c *fiber.Ctx) error {
@@ -140,6 +74,94 @@ func (s *Service) CreateUser(c *fiber.Ctx) error {
 		"message": "user created!",
 	})
 	return nil
+}
+
+func (s *Service) LoginUser(c *fiber.Ctx) error {
+	user := &model.Users{}
+
+	type LoginInput struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	var input LoginInput
+	err := c.BodyParser(&input)
+	if err != nil {
+		c.Status(http.StatusUnprocessableEntity).JSON(
+			&fiber.Map{"message": "request failed"})
+		return err
+	}
+	validator := validator.New()
+	err = validator.Struct(LoginInput{})
+
+	if err != nil {
+		c.Status(http.StatusUnprocessableEntity).JSON(
+			&fiber.Map{"message": err},
+		)
+		return err
+	}
+
+	err = s.DB.Where("email = ?", input.Email).First(user).Error
+	if err != nil {
+		c.Status(http.StatusNotFound).JSON(&fiber.Map{
+			"message": "user not found",
+		})
+		return err
+	}
+
+	err = bcrypt.CompareHashAndPassword(user.Password, []byte(input.Password))
+	if err != nil {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "Invalid password",
+		})
+	}
+
+	claims := jwt.MapClaims{
+		"email": input.Email,
+		"iss":   user.ID.String(),
+		"exp":   time.Now().Add(time.Hour * 1).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "could not login",
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"access_token": signedToken,
+	})
+}
+
+func (s *Service) LogoutUser(c *fiber.Ctx) error {
+	// TODO : find a way to revoke jwt token
+	
+	// headers := c.GetReqHeaders()
+	// tokenRead := strings.Replace(headers["Authorization"], "Bearer ", "", -1)
+
+	// claims := jwt.MapClaims{}
+	// _, err := jwt.ParseWithClaims(tokenRead, claims, func(t *jwt.Token) (interface{}, error) {
+	// 	return []byte(os.Getenv("SECRET_KEY")), nil
+	// })
+	// if err != nil {
+	// 	c.Status(http.StatusUnprocessableEntity).JSON(
+	// 		&fiber.Map{"message": "request failed"})
+	// 	return err
+	// }
+
+	// for key, val := range claims {
+	// 	fmt.Printf("Key: %v, value: %v\n", key, val)
+	// }
+
+	// claims["exp"] := time.Now().Unix()
+	// fmt.Println(claims)
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "already log out",
+	})
 }
 
 func (s *Service) GetUser(c *fiber.Ctx) error {
@@ -267,58 +289,3 @@ func (s *Service) DeleteUser(c *fiber.Ctx) error {
 
 	return nil
 }
-
-// func (db *Database) LoginUser(context *fiber.Ctx) error {
-// 	user := model.User{}
-
-// 	decoder := json.NewDecoder(r.Body)
-// 	if err := decoder.Decode(&user); err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	//fmt.Println(user.Email)
-
-// 	var hashedPassword []byte
-// 	err := db.QueryRow("SELECT password FROM user WHERE email = ?", user.Email).
-// 		Scan(&hashedPassword)
-// 	if err != nil {
-// 		http.Error(w, "User not found", http.StatusNotFound)
-// 		return
-// 	}
-
-// 	if err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(user.Password)); err != nil {
-// 		fmt.Println(err)
-// 		w.WriteHeader(http.StatusUnauthorized)
-// 		w.Write([]byte("wrong password"))
-// 		return
-// 	}
-
-// 	claims := &JwtClaim{
-// 		Email: user.Email,
-// 		StandardClaims: jwt.StandardClaims{
-// 			Issuer:    strconv.Itoa(int(user.ID)),
-// 			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
-// 		},
-// 	}
-
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-// 	signedToken, err := token.SignedString([]byte(SecretKey))
-
-// 	if err != nil {
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 		w.Write([]byte("wcan not login"))
-// 		return
-// 	}
-
-// 	data := make(map[string]string)
-
-// 	data["message"] = "succesfully login"
-// 	data["token"] = signedToken
-
-// 	err = json.NewEncoder(w).Encode(data)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-// }
