@@ -1,47 +1,35 @@
 package main
 
 import (
-	"log"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/configs"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/middleware"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/routes"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"os"
-
-	"github.com/aryanicosa/go-fiber-rest-api/database"
-	"github.com/aryanicosa/go-fiber-rest-api/pkg/user"
-	"github.com/aryanicosa/go-fiber-rest-api/pkg/user/model"
-	"github.com/joho/godotenv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// Define Fiber config.
+	config := configs.FiberConfig()
 
-	config := &database.Config{
-		Host:     os.Getenv("POSTGRES_HOST"),
-		Port:     os.Getenv("POSTGRES_PORT"),
-		Password: os.Getenv("POSTGRES_PASSWORD"),
-		User:     os.Getenv("POSTGRES_USER"),
-		SSLMode:  os.Getenv("POSTGRES_SSLMODE"),
-		DBName:   os.Getenv("POSTGRES_DB"),
-		TimeZone: os.Getenv("POSTGRES_TIMEZONE"),
-	}
-	db, err := database.NewConnection(config)
-	if err != nil {
-		log.Fatal("could not load database")
-	}
+	// define a new fiber app with config
+	app := fiber.New(config)
 
-	err = model.MigrateUsers(db)
-	if err != nil {
-		log.Fatal("could not migrate db")
-	}
+	// middlewares
+	middleware.FiberMiddleware(app)
 
-	r := &user.Service{
-		DB: db,
-	}
-	app := fiber.New()
-	r.SetupRoutes(app)
+	// Routes.
+	routes.SwaggerRoute(app)  // Register a route for API Docs (Swagger).
+	routes.PublicRoutes(app)  // Register a public routes for app.
+	routes.PrivateRoutes(app) // Register a private routes for app.
+	routes.NotFoundRoute(app) // Register route for 404 Error.
 
-	app.Listen(":8080")
+	// Start server (with or without graceful shutdown).
+	if os.Getenv("STAGE_STATUS") == "dev" {
+		utils.StartServer(app)
+	} else {
+		utils.StartServerWithGracefulShutdown(app)
+	}
 }

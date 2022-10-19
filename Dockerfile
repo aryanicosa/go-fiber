@@ -1,10 +1,24 @@
-FROM golang:1.15-alpine
+FROM golang:1.17-alpine
 LABEL maintainer="aryanicosa"
 
-WORKDIR /go/src/app
+# Move to working directory (/build).
+WORKDIR /build
+
+# Copy and download dependency using go mod.
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the code into the container.
 COPY . .
 
-RUN go build -o go-fiber
+# Set necessary environment variables needed for our image and build the API server.
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+RUN go build -ldflags="-s -w" -o apiserver .
 
-EXPOSE 8080
-CMD ["./main"]
+FROM scratch
+
+# Copy binary and config files from /build to root folder of scratch container.
+COPY --from=builder ["/build/apiserver", "/build/.env", "/"]
+
+# Command to run when starting the container.
+ENTRYPOINT ["/apiserver"]
