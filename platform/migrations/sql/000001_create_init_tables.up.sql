@@ -4,10 +4,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Set timezone
 -- For more information, please visit:
 -- https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-SET TIMEZONE="Europe/Moscow";
+SET TIMEZONE="Asia/Jakarta";
 
 -- Create users table
-CREATE TABLE users (
+CREATE TABLE IF NOT EXIST users (
                      id UUID DEFAULT uuid_generate_v4 () PRIMARY KEY,
                      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW (),
                      updated_at TIMESTAMP NULL,
@@ -18,7 +18,7 @@ CREATE TABLE users (
 );
 
 -- Create books table
-CREATE TABLE books (
+CREATE TABLE IF NOT EXIST books (
                      id UUID DEFAULT uuid_generate_v4 () PRIMARY KEY,
                      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW (),
                      updated_at TIMESTAMP NULL,

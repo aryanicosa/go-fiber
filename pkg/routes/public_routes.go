@@ -1,14 +1,14 @@
 package routes
 
 import (
-	"github.com/create-go-app/fiber-go-template/app/controllers"
+	"github.com/aryanicosa/go-fiber-rest-api/app/controllers"
 	"github.com/gofiber/fiber/v2"
 )
 
 // PublicRoutes func for describe group of public routes.
 func PublicRoutes(a *fiber.App) {
 	// Create routes group.
-	route := a.Group("/api/v1")
+	route := a.Group("/v1")
 
 	// Routes for GET method:
 	route.Get("/books", controllers.GetBooks)   // get list of all books

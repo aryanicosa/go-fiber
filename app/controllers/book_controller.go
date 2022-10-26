@@ -1,15 +1,17 @@
 package controllers
 
 import (
+	"github.com/aryanicosa/go-fiber-rest-api/app/queries"
 	"time"
 
-	"github.com/create-go-app/fiber-go-template/app/models"
-	"github.com/create-go-app/fiber-go-template/pkg/repository"
-	"github.com/create-go-app/fiber-go-template/pkg/utils"
-	"github.com/create-go-app/fiber-go-template/platform/database"
+	"github.com/aryanicosa/go-fiber-rest-api/app/models"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/repository"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
+
+var bookQuery *queries.BookQueries
 
 // GetBooks func gets all exists books.
 // @Description Get all exists books.
@@ -20,18 +22,8 @@ import (
 // @Success 200 {array} models.Book
 // @Router /v1/books [get]
 func GetBooks(c *fiber.Ctx) error {
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Get all books.
-	books, err := db.GetBooks()
+	books, err := bookQuery.GetBooks()
 	if err != nil {
 		// Return, if books not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -70,18 +62,8 @@ func GetBook(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Get book by ID.
-	book, err := db.GetBook(id)
+	book, err := bookQuery.GetBook(id)
 	if err != nil {
 		// Return, if book not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -162,16 +144,6 @@ func CreateBook(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Create a new validator for a Book model.
 	validate := utils.NewValidator()
 
@@ -191,7 +163,7 @@ func CreateBook(c *fiber.Ctx) error {
 	}
 
 	// Create book by given model.
-	if err := db.CreateBook(book); err != nil {
+	if err := bookQuery.CreateBook(book); err != nil {
 		// Return status 500 and error message.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -272,18 +244,8 @@ func UpdateBook(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Checking, if book with given ID is exists.
-	foundedBook, err := db.GetBook(book.ID)
+	foundedBook, err := bookQuery.GetBook(book.ID)
 	if err != nil {
 		// Return status 404 and book not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -313,7 +275,7 @@ func UpdateBook(c *fiber.Ctx) error {
 		}
 
 		// Update book by given ID.
-		if err := db.UpdateBook(foundedBook.ID, book); err != nil {
+		if err := bookQuery.UpdateBook(foundedBook.ID, book); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,
@@ -407,18 +369,8 @@ func DeleteBook(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Checking, if book with given ID is exists.
-	foundedBook, err := db.GetBook(book.ID)
+	foundedBook, err := bookQuery.GetBook(book.ID)
 	if err != nil {
 		// Return status 404 and book not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -433,7 +385,7 @@ func DeleteBook(c *fiber.Ctx) error {
 	// Only the creator can delete his book.
 	if foundedBook.UserID == userID {
 		// Delete book by given ID.
-		if err := db.DeleteBook(foundedBook.ID); err != nil {
+		if err := bookQuery.DeleteBook(foundedBook.ID); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,

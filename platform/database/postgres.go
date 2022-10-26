@@ -2,21 +2,30 @@ package database
 
 import (
 	"fmt"
+	"github.com/aryanicosa/go-fiber-rest-api/app/queries"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	_ "github.com/jackc/pgx/v4/stdlib" // load pgx driver for PostgreSQL
-	"github.com/jmoiron/sqlx"
-	"os"
-	"strconv"
-	"time"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-// PostgreSQLConnection func for connection to PostgreSQL database.
-func PostgreSQLConnection() (*sqlx.DB, error) {
-	// Define database connection settings.
-	maxConn, _ := strconv.Atoi(os.Getenv("DB_MAX_CONNECTIONS"))
-	maxIdleConn, _ := strconv.Atoi(os.Getenv("DB_MAX_IDLE_CONNECTIONS"))
-	maxLifetimeConn, _ := strconv.Atoi(os.Getenv("DB_MAX_LIFETIME_CONNECTIONS"))
+type Config struct {
+	Host     string
+	Port     string
+	Password string
+	User     string
+	DBName   string
+	SSLMode  string
+	TimeZone string
+}
 
+type Queries struct {
+	*queries.UserQueries // load queries from User model
+	// *queries.BookQueries // load queries from Book model
+}
+
+// PostgreSQLConnection func for connection to PostgreSQL database.
+func PostgreSQLConnection(config *Config) (*Queries, error) {
 	// Build PostgreSQL connection URL.
 	postgresConnURL, err := utils.ConnectionURLBuilder("postgres")
 	if err != nil {
@@ -24,24 +33,14 @@ func PostgreSQLConnection() (*sqlx.DB, error) {
 	}
 
 	// Define database connection for PostgreSQL.
-	db, err := sqlx.Connect("pgx", postgresConnURL)
+	db, err := gorm.Open(postgres.Open(postgresConnURL), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("error, not connected to database, %w", err)
 	}
 
-	// Set database connection settings:
-	// 	- SetMaxOpenConns: the default is 0 (unlimited)
-	// 	- SetMaxIdleConns: defaultMaxIdleConns = 2
-	// 	- SetConnMaxLifetime: 0, connections are reused forever
-	db.SetMaxOpenConns(maxConn)
-	db.SetMaxIdleConns(maxIdleConn)
-	db.SetConnMaxLifetime(time.Duration(maxLifetimeConn))
-
-	// Try to ping database.
-	if err := db.Ping(); err != nil {
-		defer db.Close() // close database connection
-		return nil, fmt.Errorf("error, not sent ping to database, %w", err)
-	}
-
-	return db, nil
+	return &Queries{
+		// Set queries from models:
+		UserQueries: &queries.UserQueries{DB: db}, // from User model
+		// BookQueries: &queries.BookQueries{DB: db}, // from Book model
+	}, nil
 }

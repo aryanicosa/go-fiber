@@ -1,4 +1,5 @@
-FROM golang:1.17-alpine
+FROM golang:1.17-alpine AS builder
+
 LABEL maintainer="aryanicosa"
 
 # Move to working directory (/build).

@@ -7,8 +7,6 @@ import (
 	"github.com/create-go-app/fiber-go-template/app/models"
 	"github.com/create-go-app/fiber-go-template/pkg/utils"
 	"github.com/create-go-app/fiber-go-template/platform/cache"
-	"github.com/create-go-app/fiber-go-template/platform/database"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -75,18 +73,8 @@ func RenewTokens(c *fiber.Ctx) error {
 		// Define user ID.
 		userID := claims.UserID
 
-		// Create database connection.
-		db, err := database.OpenDBConnection()
-		if err != nil {
-			// Return status 500 and database connection error.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": true,
-				"msg":   err.Error(),
-			})
-		}
-
 		// Get user by ID.
-		foundedUser, err := db.GetUserByID(userID)
+		foundedUser, err := userQuery.GetUserByID(userID)
 		if err != nil {
 			// Return, if user not found.
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{

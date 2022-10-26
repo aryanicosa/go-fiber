@@ -1,5 +1,8 @@
-# Building GO USER CRUD rest api using Fiber and PostgreSQL
+# Building GO USER and BOOK CRUD rest api using Fiber, PostgreSQL and redis
 
 TODO:
-- separate middleware with user pkg
-
+- create correct docker compose file
+- create correct makefile
+- create correct dockerfile
+- create correct testing
+- make sure every api work as expected

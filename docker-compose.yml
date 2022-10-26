@@ -1,22 +1,13 @@
 version: '3'
 services:
-#  service:
-#    image: go-fiber-postgres-builder
-#    container_name: go-fiber-service
-#    build: ./backend
-#    ports:
-#      - "8080:8080"
-#    volumes:
-#      - ${PWD:-./}:/srv
-#    working_dir: /srv
-#    depends_on:
-#      - postgres
-#    environment:
-#      - DB_USER=postgres
-#      - DB_PASSWORD=password
-#      - DB_HOST=go-fiber
-#      - DB_PORT=5432
-#      - DB_DATABASE=gofiber
+  service:
+    container_name: go-fiber-service
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres
@@ -24,8 +15,17 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=gofiber
-    # volumes:
-    #   - ./databse/migrations/000001_create_init_tables.up.sql:/docker-entrypoint-initdb.d/000001_create_init_tables.up.sql #inisiasi create table berdasarkan file sql
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_HOST="cgapp-postgres"
+      - DB_NAME="postgres"
+      - DB_SSL_MODE="disable"
+
+  redis:
+    image: redis:5-alpine
+    container_name: cgapp-redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_HOST=cgapp-redis
+      - REDIS_DB_NUMBER=0

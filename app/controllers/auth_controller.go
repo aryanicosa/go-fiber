@@ -3,14 +3,16 @@ package controllers
 import (
 	"context"
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
+	"github.com/aryanicosa/go-fiber-rest-api/app/queries"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/cache"
-	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
+
+var userQuery *queries.UserQueries
 
 // UserSignUp method to create a new user.
 // @Description Create a new user.
@@ -48,16 +50,6 @@ func UserSignUp(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Checking role from sign up data.
 	role, err := utils.VerifyRole(signUp.UserRole)
 	if err != nil {
@@ -89,7 +81,7 @@ func UserSignUp(c *fiber.Ctx) error {
 	}
 
 	// Create a new user with validated data.
-	if err := db.CreateUser(user); err != nil {
+	if err := userQuery.CreateUser(user); err != nil {
 		// Return status 500 and create user process error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -131,18 +123,8 @@ func UserSignIn(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create database connection.
-	db, err := database.OpenDBConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Get user by email.
-	foundedUser, err := db.GetUserByEmail(signIn.Email)
+	foundedUser, err := userQuery.GetUserByEmail(signIn.Email)
 	if err != nil {
 		// Return, if user not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
