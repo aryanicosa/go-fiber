@@ -18,7 +18,7 @@ func (q *UserQueries) GetUserByID(id uuid.UUID) (models.User, error) {
 	user := models.User{}
 
 	// Send query to database.
-	err := q.DB.Table("users as u", q.DB.Model(&user)).Select("name").Where("id = ?", id).Find(&user)
+	err := q.DB.Table("users", q.DB.Model(&user)).Where("id = ?", id).Find(&user).Error
 	if err != nil {
 		// Return empty object and error.
 		return user, errors.New("unable get user, DB error")
@@ -34,7 +34,7 @@ func (q *UserQueries) GetUserByEmail(email string) (models.User, error) {
 	user := models.User{}
 
 	// Send query to database.
-	err := q.DB.Table("users as u", q.DB.Model(&user)).Select("name").Where("email = ?", email).Find(&user)
+	err := q.DB.Table("users", q.DB.Model(&user)).Where("email = ?", email).Find(&user).Error
 	if err != nil {
 		// Return empty object and error.
 		return user, errors.New("unable get user, DB error")
@@ -47,7 +47,7 @@ func (q *UserQueries) GetUserByEmail(email string) (models.User, error) {
 // CreateUser query for creating a new user by given email and password hash.
 func (q *UserQueries) CreateUser(u *models.User) error {
 	// Send query to database.
-	err := q.DB.Table("users as u").Create(&models.User{
+	err := q.DB.Table("users").Create(&models.User{
 		ID:           u.ID,
 		CreatedAt:    u.CreatedAt,
 		UpdatedAt:    u.UpdatedAt,

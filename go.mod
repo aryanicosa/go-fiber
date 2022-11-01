@@ -3,14 +3,12 @@ module github.com/aryanicosa/go-fiber-rest-api
 go 1.18
 
 require (
-	github.com/create-go-app/fiber-go-template v1.14.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.38.1
 	github.com/gofiber/jwt/v2 v2.2.7
 	github.com/gofiber/swagger v0.1.6
 	github.com/golang-jwt/jwt/v4 v4.4.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
-	github.com/jackc/pgx/v4 v4.16.1
 	github.com/lib/pq v1.10.2
 	github.com/stretchr/testify v1.7.1
 	github.com/swaggo/swag v1.8.6
@@ -39,6 +37,7 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.11.0 // indirect
+	github.com/jackc/pgx/v4 v4.16.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect

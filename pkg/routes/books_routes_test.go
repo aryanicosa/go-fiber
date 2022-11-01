@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/create-go-app/fiber-go-template/pkg/utils"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -83,7 +83,7 @@ func TestPrivateRoutes(t *testing.T) {
 	app := fiber.New()
 
 	// Define routes.
-	PrivateRoutes(app)
+	BooksRoutes(app)
 
 	// Iterate through test single test cases
 	for _, test := range tests {

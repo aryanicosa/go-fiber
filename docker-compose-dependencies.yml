@@ -2,7 +2,7 @@ version: '3'
 services:
   postgres:
     image: postgres:12
-    container_name: cgapp-postgres
+    container_name: fiber-rest-api-postgres
     ports:
       - "5432:5432"
     environment:
@@ -12,9 +12,8 @@ services:
 
   redis:
     image: redis:5-alpine
-    container_name: cgapp-redis
+    container_name: fiber-rest-api-redis
     ports:
       - "6379:6379"
     environment:
-      - REDIS_HOST="localhost" # cgapp-redis
       - REDIS_DB_NUMBER=0

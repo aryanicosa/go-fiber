@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aryanicosa/go-fiber-rest-api/app/queries"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
-	_ "github.com/jackc/pgx/v4/stdlib" // load pgx driver for PostgreSQL
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -21,11 +20,11 @@ type Config struct {
 
 type Queries struct {
 	*queries.UserQueries // load queries from User model
-	// *queries.BookQueries // load queries from Book model
+	*queries.BookQueries // load queries from Book model
 }
 
 // PostgreSQLConnection func for connection to PostgreSQL database.
-func PostgreSQLConnection(config *Config) (*Queries, error) {
+func PostgreSQLConnection() (*Queries, error) {
 	// Build PostgreSQL connection URL.
 	postgresConnURL, err := utils.ConnectionURLBuilder("postgres")
 	if err != nil {
@@ -41,6 +40,6 @@ func PostgreSQLConnection(config *Config) (*Queries, error) {
 	return &Queries{
 		// Set queries from models:
 		UserQueries: &queries.UserQueries{DB: db}, // from User model
-		// BookQueries: &queries.BookQueries{DB: db}, // from Book model
+		BookQueries: &queries.BookQueries{DB: db}, // from Book model
 	}, nil
 }

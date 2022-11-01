@@ -16,12 +16,12 @@ import (
 func Migrate(source string) error {
 	sourceStr := fmt.Sprintf("file://%s", source)
 	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_SSL_MODE"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_NAME"),
+		os.Getenv("POSTGRES_SSL_MODE"),
 	)
 	db, err := sql.Open("postgres", dbUrl)
 	driver, err := postgres.WithInstance(db, &postgres.Config{})

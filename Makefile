@@ -1,6 +1,6 @@
 .PHONY: clean critic security lint test build run
 
-APP_NAME = apiserver
+APP_NAME = server
 BUILD_DIR = $(PWD)/build
 
 clean:
@@ -24,15 +24,6 @@ build: test
 
 run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
-
-migrate.up:
-	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" up
-
-migrate.down:
-	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" down
-
-migrate.force:
-	migrate -path $(MIGRATIONS_FOLDER) -database "$(DATABASE_URL)" force $(version)
 
 docker.run: docker.network docker.postgres swag docker.fiber docker.redis
 
@@ -81,3 +72,6 @@ docker.stop.redis:
 
 swag:
 	swag init
+
+run-dependencies:
+	docker-compose -f docker-compose-dependencies.yml up

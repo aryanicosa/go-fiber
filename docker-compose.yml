@@ -1,31 +1,31 @@
 version: '3'
 services:
   service:
-    container_name: go-fiber-service
+    image: go-fiber-service-builder
+    container_name: fiber-rest-api-service
     build:
       context: .
     ports:
-      - "5000:5000"
+      - "8080:8080"
     depends_on:
       - postgres
+      - redis
 
   postgres:
-    image: postgres
-    container_name: go-fiber-postgres
+    image: postgres:12
+    container_name: fiber-rest-api-postgres
     ports:
       - "5432:5432"
     environment:
-      - DB_USER=postgres
-      - DB_PASSWORD=password
-      - DB_HOST="cgapp-postgres"
-      - DB_NAME="postgres"
-      - DB_SSL_MODE="disable"
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
 
   redis:
     image: redis:5-alpine
-    container_name: cgapp-redis
+    container_name: fiber-rest-api-redis
     ports:
       - "6379:6379"
     environment:
-      - REDIS_HOST=cgapp-redis
+      - REDIS_HOST=fiber-rest-api-redis
       - REDIS_DB_NUMBER=0

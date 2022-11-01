@@ -41,7 +41,7 @@ func TestPublicRoutes(t *testing.T) {
 	app := fiber.New()
 
 	// Define routes.
-	PublicRoutes(app)
+	UsersRoutes(app)
 
 	// Iterate through test single test cases
 	for _, test := range tests {
