@@ -23,8 +23,8 @@ type Queries struct {
 	*queries.BookQueries // load queries from Book model
 }
 
-// PostgreSQLConnection func for connection to PostgreSQL database.
-func PostgreSQLConnection() (*Queries, error) {
+// SqlConnection func for connection to PostgreSQL database.
+func SqlConnection() (*Queries, error) {
 	// Build PostgreSQL connection URL.
 	postgresConnURL, err := utils.ConnectionURLBuilder("postgres")
 	if err != nil {

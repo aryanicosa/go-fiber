@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/aryanicosa/go-fiber-rest-api/app/queries"
+	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
 	"time"
 
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
@@ -11,19 +11,18 @@ import (
 	"github.com/google/uuid"
 )
 
-var bookQuery *queries.BookQueries
-
-// GetBooks func gets all exists books.
-// @Description Get all exists books.
-// @Summary get all exists books
-// @Tags Books
-// @Accept json
-// @Produce json
-// @Success 200 {array} models.Book
-// @Router /v1/books [get]
 func GetBooks(c *fiber.Ctx) error {
+	db, err := database.SqlConnection()
+	if err != nil {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	// Get all books.
-	books, err := bookQuery.GetBooks()
+	books, err := db.GetBooks()
 	if err != nil {
 		// Return, if books not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -43,15 +42,6 @@ func GetBooks(c *fiber.Ctx) error {
 	})
 }
 
-// GetBook func gets book by given ID or 404 error.
-// @Description Get book by given ID.
-// @Summary get book by given ID
-// @Tags Book
-// @Accept json
-// @Produce json
-// @Param id path string true "Book ID"
-// @Success 200 {object} models.Book
-// @Router /v1/book/{id} [get]
 func GetBook(c *fiber.Ctx) error {
 	// Catch book ID from URL.
 	id, err := uuid.Parse(c.Params("id"))
@@ -62,8 +52,17 @@ func GetBook(c *fiber.Ctx) error {
 		})
 	}
 
+	db, err := database.SqlConnection()
+	if err != nil {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	// Get book by ID.
-	book, err := bookQuery.GetBook(id)
+	book, err := db.GetBookById(id)
 	if err != nil {
 		// Return, if book not found.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -81,19 +80,6 @@ func GetBook(c *fiber.Ctx) error {
 	})
 }
 
-// CreateBook func for creates a new book.
-// @Description Create a new book.
-// @Summary create a new book
-// @Tags Book
-// @Accept json
-// @Produce json
-// @Param title body string true "Title"
-// @Param author body string true "Author"
-// @Param user_id body string true "User ID"
-// @Param book_attrs body models.BookAttrs true "Book attributes"
-// @Success 200 {object} models.Book
-// @Security ApiKeyAuth
-// @Router /v1/book [post]
 func CreateBook(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -162,8 +148,17 @@ func CreateBook(c *fiber.Ctx) error {
 		})
 	}
 
+	db, err := database.SqlConnection()
+	if err != nil {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	// Create book by given model.
-	if err := bookQuery.CreateBook(book); err != nil {
+	if err := db.CreateBook(book); err != nil {
 		// Return status 500 and error message.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": true,
@@ -179,21 +174,6 @@ func CreateBook(c *fiber.Ctx) error {
 	})
 }
 
-// UpdateBook func for updates book by given ID.
-// @Description Update book.
-// @Summary update book
-// @Tags Book
-// @Accept json
-// @Produce json
-// @Param id body string true "Book ID"
-// @Param title body string true "Title"
-// @Param author body string true "Author"
-// @Param user_id body string true "User ID"
-// @Param book_status body integer true "Book status"
-// @Param book_attrs body models.BookAttrs true "Book attributes"
-// @Success 202 {string} status "ok"
-// @Security ApiKeyAuth
-// @Router /v1/book [put]
 func UpdateBook(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -244,8 +224,17 @@ func UpdateBook(c *fiber.Ctx) error {
 		})
 	}
 
+	db, err := database.SqlConnection()
+	if err != nil {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	// Checking, if book with given ID is exists.
-	foundedBook, err := bookQuery.GetBook(book.ID)
+	foundedBook, err := db.GetBookById(book.ID)
 	if err != nil {
 		// Return status 404 and book not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -275,7 +264,7 @@ func UpdateBook(c *fiber.Ctx) error {
 		}
 
 		// Update book by given ID.
-		if err := bookQuery.UpdateBook(foundedBook.ID, book); err != nil {
+		if err := db.UpdateBook(foundedBook.ID, book); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,
@@ -285,6 +274,7 @@ func UpdateBook(c *fiber.Ctx) error {
 
 		// Return status 201.
 		return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+			"book":  book,
 			"error": false,
 			"msg":   nil,
 		})
@@ -297,16 +287,6 @@ func UpdateBook(c *fiber.Ctx) error {
 	}
 }
 
-// DeleteBook func for deletes book by given ID.
-// @Description Delete book by given ID.
-// @Summary delete book by given ID
-// @Tags Book
-// @Accept json
-// @Produce json
-// @Param id body string true "Book ID"
-// @Success 204 {string} status "ok"
-// @Security ApiKeyAuth
-// @Router /v1/book [delete]
 func DeleteBook(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -369,8 +349,17 @@ func DeleteBook(c *fiber.Ctx) error {
 		})
 	}
 
+	db, err := database.SqlConnection()
+	if err != nil {
+		// Return status 500 and database connection error.
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	// Checking, if book with given ID is exists.
-	foundedBook, err := bookQuery.GetBook(book.ID)
+	foundedBook, err := db.GetBookById(book.ID)
 	if err != nil {
 		// Return status 404 and book not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -385,7 +374,7 @@ func DeleteBook(c *fiber.Ctx) error {
 	// Only the creator can delete his book.
 	if foundedBook.UserID == userID {
 		// Delete book by given ID.
-		if err := bookQuery.DeleteBook(foundedBook.ID); err != nil {
+		if err := db.DeleteBook(foundedBook.ID); err != nil {
 			// Return status 500 and error message.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": true,

@@ -47,7 +47,7 @@ func UserSignUp(c *fiber.Ctx) error {
 		})
 	}
 
-	db, err := database.PostgreSQLConnection()
+	db, err := database.SqlConnection()
 	if err != nil {
 		// Return status 500 and database connection error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -109,7 +109,7 @@ func UserSignIn(c *fiber.Ctx) error {
 		})
 	}
 
-	db, err := database.PostgreSQLConnection()
+	db, err := database.SqlConnection()
 	if err != nil {
 		// Return status 500 and database connection error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -283,7 +283,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		// Define user ID.
 		userID := claims.UserID
 
-		db, err := database.PostgreSQLConnection()
+		db, err := database.SqlConnection()
 		if err != nil {
 			// Return status 500 and database connection error.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

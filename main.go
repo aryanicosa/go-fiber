@@ -35,9 +35,9 @@ func main() {
 	if err != nil {
 		log.Fatal("database migration fail")
 	}
-	
+
 	// connect to db
-	_, err = database.PostgreSQLConnection()
+	_, err = database.SqlConnection()
 	if err != nil {
 		log.Fatal("could not load database")
 	}
