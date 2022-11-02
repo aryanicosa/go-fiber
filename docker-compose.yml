@@ -3,6 +3,7 @@ services:
   service:
     image: go-fiber-service-builder
     container_name: fiber-rest-api-service
+    working_dir: /build
     build:
       context: .
     ports:

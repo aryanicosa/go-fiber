@@ -1,12 +1,20 @@
 # Building GO USER and BOOK CRUD rest api using Fiber, PostgreSQL and redis
 
 TODO list:
-- refactor db connection
-- create correct docker compose file
-- create correct makefile
-- create correct dockerfile
-- create correct testing
-- make sure every api work as expected
+1. Testing
+  - create correct testing
+2. Swagger doc
+  - create correct and easy to use swagger api
+3. Dockerfile
+  - create correct dockerfile
+4. Makefile
+   - create correct makefile
+5. Docker-compose
+  - create correct docker compose file
+  - create docker-compose-test.yml file
+6. Deploy and host go-fiber web app
+   - CI/CD
+   - Heroku
 
 Run Service Locally
 1. git clone git@github.com:aryanicosa/go-fiber.git

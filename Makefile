@@ -36,14 +36,14 @@ docker.fiber.build:
 
 docker.fiber: docker.fiber.build
 	docker run --rm -d \
-		--name cgapp-fiber \
+		--name go-fiber \
 		--network dev-network \
 		-p 5000:5000 \
 		fiber
 
 docker.postgres:
 	docker run --rm -d \
-		--name cgapp-postgres \
+		--name go-fiber-postgres \
 		--network dev-network \
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=password \
@@ -54,7 +54,7 @@ docker.postgres:
 
 docker.redis:
 	docker run --rm -d \
-		--name cgapp-redis \
+		--name go-fiber-redis \
 		--network dev-network \
 		-p 6379:6379 \
 		redis
@@ -62,16 +62,19 @@ docker.redis:
 docker.stop: docker.stop.fiber docker.stop.postgres docker.stop.redis
 
 docker.stop.fiber:
-	docker stop cgapp-fiber
+	docker stop go-fiber
 
 docker.stop.postgres:
-	docker stop cgapp-postgres
+	docker stop go-fiber-postgres
 
 docker.stop.redis:
-	docker stop cgapp-redis
+	docker stop go-fiber-redis
 
 swag:
 	swag init
 
 run-dependencies:
 	docker-compose -f docker-compose-dependencies.yml up
+
+run-test-dependencies:
+	docker-compose -f docker-compose-test.yml up
