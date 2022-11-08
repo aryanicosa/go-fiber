@@ -47,15 +47,6 @@ func UserSignUp(c *fiber.Ctx) error {
 		})
 	}
 
-	db, err := database.SqlConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Create a new user struct.
 	user := &models.User{}
 
@@ -77,6 +68,7 @@ func UserSignUp(c *fiber.Ctx) error {
 	}
 
 	// Create a new user with validated data.
+	db, err := database.UserConn()
 	if err := db.CreateUser(user); err != nil {
 		// Return status 500 and create user process error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -109,16 +101,8 @@ func UserSignIn(c *fiber.Ctx) error {
 		})
 	}
 
-	db, err := database.SqlConnection()
-	if err != nil {
-		// Return status 500 and database connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
 	// Get user by email.
+	db, err := database.UserConn()
 	foundedUser, err := db.GetUserByEmail(signIn.Email)
 	if err != nil {
 		// Return, if user not found.
@@ -283,16 +267,8 @@ func RenewTokens(c *fiber.Ctx) error {
 		// Define user ID.
 		userID := claims.UserID
 
-		db, err := database.SqlConnection()
-		if err != nil {
-			// Return status 500 and database connection error.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": true,
-				"msg":   err.Error(),
-			})
-		}
-
 		// Get user by ID.
+		db, err := database.UserConn()
 		foundedUser, err := db.GetUserByID(userID)
 		if err != nil {
 			// Return, if user not found.

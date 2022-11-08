@@ -29,17 +29,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// init connect to db
+	_, err = database.InitDBConnection()
+	if err != nil {
+		log.Fatal("could not load database")
+	}
+
 	// migration
 	migrationFileSource := os.Getenv("SQL_SOURCE_PATH")
 	err = migrations.Migrate(migrationFileSource)
 	if err != nil {
 		log.Fatal("database migration fail")
-	}
-
-	// connect to db
-	_, err = database.SqlConnection()
-	if err != nil {
-		log.Fatal("could not load database")
 	}
 
 	// Routes.
