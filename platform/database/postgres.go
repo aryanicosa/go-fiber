@@ -32,12 +32,12 @@ func InitDBConnection() (*gorm.DB, error) {
 	return db, nil
 }
 
+// UserConn used for init users db query
 func UserConn() (*queries.UserQueries, error) {
-	// Configure any package-level settings
 	return &queries.UserQueries{DB: db}, nil
 }
 
+// BookConn used for init books db query
 func BookConn() (*queries.BookQueries, error) {
-	// Configure any package-level settings
 	return &queries.BookQueries{DB: db}, nil
 }
