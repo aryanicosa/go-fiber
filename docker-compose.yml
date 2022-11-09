@@ -6,6 +6,8 @@ services:
     working_dir: /build
     build:
       context: .
+    volumes:
+      - ${PWD:-./}:/build
     ports:
       - "8080:8080"
     depends_on:

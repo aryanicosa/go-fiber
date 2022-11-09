@@ -27,12 +27,12 @@ func InitDBConnection() (*gorm.DB, error) {
 	return db, nil
 }
 
-// UserConn used for init users db query
-func UserConn() (*queries.UserQueries, error) {
+// UserDB used for init users db query
+func UserDB() (*queries.UserQueries, error) {
 	return &queries.UserQueries{DB: db}, nil
 }
 
-// BookConn used for init books db query
-func BookConn() (*queries.BookQueries, error) {
+// BookDB used for init books db query
+func BookDB() (*queries.BookQueries, error) {
 	return &queries.BookQueries{DB: db}, nil
 }

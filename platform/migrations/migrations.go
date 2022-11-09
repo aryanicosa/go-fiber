@@ -14,7 +14,7 @@ import (
 )
 
 func Migrate(source string) error {
-	sourceStr := fmt.Sprintf("file://%s", source)
+	sourceStr := fmt.Sprintf("file://%s", source) // "///" means absolute path "//" mean relative path
 	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),

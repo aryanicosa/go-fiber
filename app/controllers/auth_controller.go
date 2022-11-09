@@ -68,7 +68,13 @@ func UserSignUp(c *fiber.Ctx) error {
 	}
 
 	// Create a new user with validated data.
-	db, err := database.UserConn()
+	db, err := database.UserDB()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
 	if err := db.CreateUser(user); err != nil {
 		// Return status 500 and create user process error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -80,12 +86,8 @@ func UserSignUp(c *fiber.Ctx) error {
 	// Delete password hash field from JSON view.
 	user.PasswordHash = ""
 
-	// Return status 200 OK.
-	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"user":  user,
-	})
+	// Return status 201 OK.
+	return c.Status(fiber.StatusCreated).JSON(user)
 }
 
 func UserSignIn(c *fiber.Ctx) error {
@@ -102,7 +104,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Get user by email.
-	db, err := database.UserConn()
+	db, err := database.UserDB()
 	foundedUser, err := db.GetUserByEmail(signIn.Email)
 	if err != nil {
 		// Return, if user not found.
@@ -166,14 +168,11 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Return status 200 OK.
-	return c.JSON(fiber.Map{
-		"error": false,
-		"msg":   nil,
-		"tokens": fiber.Map{
-			"access":  tokens.Access,
-			"refresh": tokens.Refresh,
-		},
-	})
+	return c.Status(fiber.StatusOK).JSON(
+		utils.Tokens{
+			Access:  tokens.Access,
+			Refresh: tokens.Refresh,
+		})
 }
 
 func UserSignOut(c *fiber.Ctx) error {
@@ -268,7 +267,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		userID := claims.UserID
 
 		// Get user by ID.
-		db, err := database.UserConn()
+		db, err := database.UserDB()
 		foundedUser, err := db.GetUserByID(userID)
 		if err != nil {
 			// Return, if user not found.
@@ -318,7 +317,7 @@ func RenewTokens(c *fiber.Ctx) error {
 			})
 		}
 
-		return c.JSON(fiber.Map{
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"error": false,
 			"msg":   nil,
 			"tokens": fiber.Map{

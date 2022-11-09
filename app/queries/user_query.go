@@ -64,3 +64,18 @@ func (q *UserQueries) CreateUser(u *models.User) error {
 	// This query returns nothing.
 	return nil
 }
+
+func (q *UserQueries) DeleteUser(id uuid.UUID) error {
+	// Define User variable.
+	user := models.User{}
+
+	// Send query to database.
+	err := q.DB.Table("users").Where("id = ?", id).Delete(&user).Error
+	if err != nil {
+		// Return empty object and error.
+		return errors.New("unable delete user, DB error")
+	}
+
+	// Return query result.
+	return nil
+}

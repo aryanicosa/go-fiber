@@ -13,7 +13,7 @@ import (
 
 func GetBooks(c *fiber.Ctx) error {
 	// Get all books.
-	db, err := database.BookConn()
+	db, err := database.BookDB()
 	books, err := db.GetBooks()
 	if err != nil {
 		// Return, if books not found.
@@ -45,7 +45,7 @@ func GetBook(c *fiber.Ctx) error {
 	}
 
 	// Get book by ID.
-	db, err := database.BookConn()
+	db, err := database.BookDB()
 	book, err := db.GetBookById(id)
 	if err != nil {
 		// Return, if book not found.
@@ -133,7 +133,7 @@ func CreateBook(c *fiber.Ctx) error {
 	}
 
 	// Create book by given model.
-	db, err := database.BookConn()
+	db, err := database.BookDB()
 	if err := db.CreateBook(book); err != nil {
 		// Return status 500 and error message.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -201,7 +201,7 @@ func UpdateBook(c *fiber.Ctx) error {
 	}
 
 	// Checking, if book with given ID is exists.
-	db, err := database.BookConn()
+	db, err := database.BookDB()
 	foundedBook, err := db.GetBookById(book.ID)
 	if err != nil {
 		// Return status 404 and book not found error.
@@ -318,7 +318,7 @@ func DeleteBook(c *fiber.Ctx) error {
 	}
 
 	// Checking, if book with given ID is exists.
-	db, err := database.BookConn()
+	db, err := database.BookDB()
 	foundedBook, err := db.GetBookById(book.ID)
 	if err != nil {
 		// Return status 404 and book not found error.
