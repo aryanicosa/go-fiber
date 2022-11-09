@@ -1,4 +1,4 @@
-# Building GO USER and BOOK CRUD rest api using Fiber, PostgreSQL and redis
+# Building GO rest api boilerplate using Fiber, PostgreSQL, redis and docker
 
 TODO list:
 1. Testing
