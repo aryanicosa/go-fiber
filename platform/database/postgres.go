@@ -10,11 +10,6 @@ import (
 
 var db *gorm.DB
 
-type Queries struct {
-	*queries.UserQueries // load queries from User model
-	*queries.BookQueries // load queries from Book model
-}
-
 // InitDBConnection func for connection to PostgreSQL database.
 func InitDBConnection() (*gorm.DB, error) {
 	// Build PostgreSQL connection URL.
