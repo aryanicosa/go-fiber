@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/aryanicosa/go-fiber-rest-api/app/controllers"
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/repository"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/migrations"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -50,6 +50,7 @@ func TestBookRoutes(t *testing.T) {
 	TestCreateBook(t)
 	TestGetBookById(t)
 	TestGetBookAll(t)
+	TestDeleteBookById(t)
 }
 
 func TestCreateBook(t *testing.T) {
@@ -60,7 +61,7 @@ func TestCreateBook(t *testing.T) {
 
 	suffix := utils.String(12)
 	user := &models.User{
-		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		ID:           uuid.New(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		Email:        fmt.Sprintf("test%s@mail.com", suffix),
@@ -75,7 +76,7 @@ func TestCreateBook(t *testing.T) {
 
 	// Create token with `book:create` credential.
 	tokenOnlyCreate, err := utils.GenerateNewTokens(
-		user.ID,
+		user.ID.String(),
 		[]string{"book:create"},
 	)
 	if err != nil {
@@ -146,7 +147,7 @@ func TestGetBookById(t *testing.T) {
 
 	suffix := utils.String(12)
 	user := &models.User{
-		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		ID:           uuid.New(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		Email:        fmt.Sprintf("test%s@mail.com", suffix),
@@ -165,7 +166,7 @@ func TestGetBookById(t *testing.T) {
 	}
 
 	book := &models.Book{
-		ID:         controllers.GenerateUUIDWithoutHyphen(),
+		ID:         uuid.New(),
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 		UserID:     user.ID,
@@ -190,7 +191,7 @@ func TestGetBookById(t *testing.T) {
 		method       string // input method
 		expectedCode int
 	}{
-		route:        "/v1/book/" + book.ID,
+		route:        "/v1/book/" + book.ID.String(),
 		method:       "GET",
 		expectedCode: 200,
 	}
@@ -231,7 +232,7 @@ func TestGetBookAll(t *testing.T) {
 
 	suffix := utils.String(12)
 	user := &models.User{
-		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		ID:           uuid.New(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		Email:        fmt.Sprintf("test%s@mail.com", suffix),
@@ -251,7 +252,7 @@ func TestGetBookAll(t *testing.T) {
 
 	books := []models.Book{
 		{
-			ID:         controllers.GenerateUUIDWithoutHyphen(),
+			ID:         uuid.New(),
 			CreatedAt:  time.Now(),
 			UpdatedAt:  time.Now(),
 			UserID:     user.ID,
@@ -265,7 +266,7 @@ func TestGetBookAll(t *testing.T) {
 			},
 		},
 		{
-			ID:         controllers.GenerateUUIDWithoutHyphen(),
+			ID:         uuid.New(),
 			CreatedAt:  time.Now(),
 			UpdatedAt:  time.Now(),
 			UserID:     user.ID,
@@ -338,7 +339,7 @@ func TestUpdateBookById(t *testing.T) {
 
 	suffix := utils.String(12)
 	user := &models.User{
-		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		ID:           uuid.New(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		Email:        fmt.Sprintf("test%s@mail.com", suffix),
@@ -357,7 +358,7 @@ func TestUpdateBookById(t *testing.T) {
 	}
 
 	book := &models.Book{
-		ID:         controllers.GenerateUUIDWithoutHyphen(),
+		ID:         uuid.New(),
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 		UserID:     user.ID,
@@ -378,7 +379,7 @@ func TestUpdateBookById(t *testing.T) {
 
 	// Create token with `book:create` credential.
 	tokenAdmin, err := utils.GenerateNewTokens(
-		user.ID,
+		user.ID.String(),
 		[]string{"book:create", "book:update", "book:delete"},
 	)
 	if err != nil {
@@ -391,7 +392,7 @@ func TestUpdateBookById(t *testing.T) {
 		method       string // input method
 		expectedCode int
 	}{
-		route:        "/v1/book/" + book.ID,
+		route:        "/v1/book/" + book.ID.String(),
 		method:       "PUT",
 		expectedCode: 201,
 	}
@@ -445,7 +446,7 @@ func TestDeleteBookById(t *testing.T) {
 
 	suffix := utils.String(12)
 	user := &models.User{
-		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		ID:           uuid.New(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		Email:        fmt.Sprintf("test%s@mail.com", suffix),
@@ -464,7 +465,7 @@ func TestDeleteBookById(t *testing.T) {
 	}
 
 	book := &models.Book{
-		ID:         controllers.GenerateUUIDWithoutHyphen(),
+		ID:         uuid.New(),
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 		UserID:     user.ID,
@@ -485,7 +486,7 @@ func TestDeleteBookById(t *testing.T) {
 
 	// Create token with `book:create` credential.
 	tokenAdmin, err := utils.GenerateNewTokens(
-		user.ID,
+		user.ID.String(),
 		[]string{"book:create", "book:update", "book:delete"},
 	)
 	if err != nil {
@@ -498,12 +499,12 @@ func TestDeleteBookById(t *testing.T) {
 		method       string // input method
 		expectedCode int
 	}{
-		route:        "/v1/book/" + book.ID,
+		route:        "/v1/book/" + book.ID.String(),
 		method:       "DELETE",
 		expectedCode: 204,
 	}
 
-	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(book.ID))
+	req := httptest.NewRequest(test.method, test.route, nil)
 	req.Header.Add("Authorization", "Bearer "+tokenAdmin.Access)
 	req.Header.Add("Content-Type", "application/json")
 

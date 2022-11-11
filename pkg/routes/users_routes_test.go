@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/aryanicosa/go-fiber-rest-api/app/controllers"
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/repository"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/migrations"
+	"github.com/google/uuid"
 	"io/ioutil"
 	"log"
 	"net/http/httptest"
@@ -110,7 +110,7 @@ func TestUserSignIn(t *testing.T) {
 
 	suffix := utils.String(12)
 	user := &models.User{
-		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		ID:           uuid.New(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		Email:        fmt.Sprintf("test%s@mail.com", suffix),
@@ -170,7 +170,7 @@ func TestUserRenewToken(t *testing.T) {
 
 	suffix := utils.String(12)
 	user := &models.User{
-		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		ID:           uuid.New(),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 		Email:        fmt.Sprintf("test%s@mail.com", suffix),
@@ -255,7 +255,7 @@ func TestUserRenewToken(t *testing.T) {
 
 func TestUserSignOut(t *testing.T) {
 	tokenOnly, err := utils.GenerateNewTokens(
-		controllers.GenerateUUIDWithoutHyphen(),
+		uuid.New().String(),
 		[]string{},
 	)
 	if err != nil {

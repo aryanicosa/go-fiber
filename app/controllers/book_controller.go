@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
@@ -35,7 +36,13 @@ func GetBooks(c *fiber.Ctx) error {
 
 func GetBook(c *fiber.Ctx) error {
 	// Catch book ID from URL.
-	id := c.Params("id")
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
 
 	// Get book by ID.
 	db, err := database.BookDB()
@@ -107,7 +114,7 @@ func CreateBook(c *fiber.Ctx) error {
 	validate := utils.NewValidator()
 
 	// Set initialized default data for book:
-	book.ID = GenerateUUIDWithoutHyphen()
+	book.ID = uuid.New()
 	book.CreatedAt = time.Now()
 	book.UserID = claims.UserID
 	book.BookStatus = 1 // 0 == draft, 1 == active
@@ -236,6 +243,15 @@ func UpdateBook(c *fiber.Ctx) error {
 }
 
 func DeleteBook(c *fiber.Ctx) error {
+	// Catch book ID from URL.
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": true,
+			"msg":   err.Error(),
+		})
+	}
+
 	// Get now time.
 	now := time.Now().Unix()
 
@@ -273,33 +289,9 @@ func DeleteBook(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create new Book struct
-	book := &models.Book{}
-
-	// Check, if received JSON data is valid.
-	if err := c.BodyParser(book); err != nil {
-		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
-	}
-
-	// Create a new validator for a Book model.
-	validate := utils.NewValidator()
-
-	// Validate book fields.
-	if err := validate.StructPartial(book, "id"); err != nil {
-		// Return, if some fields are not valid.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   utils.ValidatorErrors(err),
-		})
-	}
-
 	// Checking, if book with given ID is exists.
 	db, err := database.BookDB()
-	foundedBook, err := db.GetBookById(book.ID)
+	foundedBook, err := db.GetBookById(id)
 	if err != nil {
 		// Return status 404 and book not found error.
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{

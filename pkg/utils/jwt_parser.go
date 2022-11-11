@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/google/uuid"
 	"os"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 
 // TokenMetadata struct to describe metadata in JWT.
 type TokenMetadata struct {
-	UserID      string
+	UserID      uuid.UUID
 	Credentials map[string]bool
 	Expires     int64
 }
@@ -26,7 +27,10 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		// User ID.
-		userID := claims["id"].(string)
+		userID, err := uuid.Parse(claims["id"].(string))
+		if err != nil {
+			return nil, err
+		}
 
 		// Expires time.
 		expires := int64(claims["expires"].(float64))

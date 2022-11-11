@@ -4,19 +4,20 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"github.com/google/uuid"
 	"time"
 )
 
 // Book struct to describe book object.
 type Book struct {
-	ID         string    `db:"id" json:"id" validate:"required"`
-	CreatedAt  time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt  time.Time `db:"updated_at" json:"updated_at"`
-	UserID     string    `db:"user_id" json:"user_id" validate:"required"`
-	Title      string    `db:"title" json:"title" validate:"required,lte=255"`
-	Author     string    `db:"author" json:"author" validate:"required,lte=255"`
-	BookStatus int       `db:"book_status" json:"book_status" validate:"required,len=1"`
-	BookAttrs  BookAttrs `db:"book_attrs" json:"book_attrs" validate:"required,dive"`
+	ID         uuid.UUID `json:"id" validate:"required,uuid"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	UserID     uuid.UUID `json:"user_id" validate:"required,uuid"`
+	Title      string    `json:"title" validate:"required,lte=255"`
+	Author     string    `json:"author" validate:"required,lte=255"`
+	BookStatus int       `json:"book_status" validate:"required,len=1"`
+	BookAttrs  BookAttrs `json:"book_attrs" validate:"required,dive"`
 }
 
 // BookAttrs struct to describe book attributes.

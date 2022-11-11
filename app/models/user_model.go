@@ -1,16 +1,17 @@
 package models
 
 import (
+	"github.com/google/uuid"
 	"time"
 )
 
 // User struct to describe User object.
 type User struct {
-	ID           string    `db:"id" json:"id" validate:"required"`
-	CreatedAt    time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
-	Email        string    `db:"email" json:"email" validate:"required,email,lte=255"`
-	PasswordHash string    `db:"password_hash" json:"password_hash,omitempty" validate:"required,lte=255"`
-	UserStatus   int       `db:"user_status" json:"user_status" validate:"required,len=1"`
-	UserRole     string    `db:"user_role" json:"user_role" validate:"required,lte=25"`
+	ID           uuid.UUID `json:"id" validate:"required,uuid"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Email        string    `json:"email" validate:"required,email,lte=255"`
+	PasswordHash string    `json:"password_hash,omitempty" validate:"required,lte=255"`
+	UserStatus   int       `json:"user_status" validate:"required,len=1"`
+	UserRole     string    `json:"user_role" validate:"required,lte=25"`
 }

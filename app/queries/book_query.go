@@ -3,6 +3,7 @@ package queries
 import (
 	"errors"
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -50,7 +51,7 @@ func (q *BookQueries) GetBooks() ([]models.Book, error) {
 }
 
 // GetBookById method for getting one book by given ID.
-func (q *BookQueries) GetBookById(id string) (models.Book, error) {
+func (q *BookQueries) GetBookById(id uuid.UUID) (models.Book, error) {
 	// Define book variable.
 	book := models.Book{}
 
@@ -82,7 +83,7 @@ func (q *BookQueries) GetBooksByAuthor(author string) ([]models.Book, error) {
 }
 
 // UpdateBook method for updating book by given Book object.
-func (q *BookQueries) UpdateBook(id string, b *models.Book) error {
+func (q *BookQueries) UpdateBook(id uuid.UUID, b *models.Book) error {
 	// Send query to database.
 	err := q.DB.Table("books").Where("id = ?", id).Updates(b).Error
 	if err != nil {
@@ -95,7 +96,7 @@ func (q *BookQueries) UpdateBook(id string, b *models.Book) error {
 }
 
 // DeleteBook method for delete book by given ID.
-func (q *BookQueries) DeleteBook(id string) error {
+func (q *BookQueries) DeleteBook(id uuid.UUID) error {
 	// Send query to database.
 	err := q.Table("books").Where("id = ?", id).Delete(&models.Book{}).Error
 	if err != nil {

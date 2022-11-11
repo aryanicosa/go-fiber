@@ -6,7 +6,6 @@ import (
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/cache"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -52,7 +51,7 @@ func UserSignUp(c *fiber.Ctx) error {
 	user := &models.User{}
 
 	// Set initialized default data for user:
-	user.ID = GenerateUUIDWithoutHyphen()
+	user.ID = uuid.New()
 	user.CreatedAt = time.Now()
 	user.Email = signUp.Email
 	user.PasswordHash = utils.GeneratePassword(signUp.Password)
@@ -136,7 +135,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Generate a new pair of access and refresh tokens.
-	tokens, err := utils.GenerateNewTokens(foundedUser.ID, credentials)
+	tokens, err := utils.GenerateNewTokens(foundedUser.ID.String(), credentials)
 	if err != nil {
 		// Return status 500 and token generation error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -146,7 +145,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Define user ID.
-	userID := foundedUser.ID
+	userID := foundedUser.ID.String()
 
 	// Create a new Redis connection.
 	connRedis, err := cache.RedisConnection()
@@ -184,7 +183,7 @@ func UserSignOut(c *fiber.Ctx) error {
 	}
 
 	// Define user ID.
-	userID := claims.UserID
+	userID := claims.UserID.String()
 
 	// Create a new Redis connection.
 	connRedis, err := cache.RedisConnection()
@@ -285,7 +284,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		}
 
 		// Generate JWT Access & Refresh tokens.
-		tokens, err := utils.GenerateNewTokens(userID, credentials)
+		tokens, err := utils.GenerateNewTokens(userID.String(), credentials)
 		if err != nil {
 			// Return status 500 and token generation error.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -305,7 +304,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		}
 
 		// Save refresh token to Redis.
-		errRedis := connRedis.Set(context.Background(), userID, tokens.Refresh, 0).Err()
+		errRedis := connRedis.Set(context.Background(), userID.String(), tokens.Refresh, 0).Err()
 		if errRedis != nil {
 			// Return status 500 and Redis connection error.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -322,10 +321,4 @@ func RenewTokens(c *fiber.Ctx) error {
 			"msg":   "unauthorized, your session was ended earlier",
 		})
 	}
-}
-
-func GenerateUUIDWithoutHyphen() string {
-	UUID := uuid.New()
-	userId := strings.Replace(UUID.String(), "-", "", -1)
-	return userId
 }
