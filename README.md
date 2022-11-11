@@ -1,18 +1,24 @@
 # Building GO rest api boilerplate using Fiber, PostgreSQL, redis and docker
 
 TODO list:
-1. Testing
-  - create correct testing
-2. Swagger doc
-  - create correct and easy to use swagger api
-3. Dockerfile
+1. Controller
+   - Create consistence response model
+2. Utility
+   - Create generic error response function handler
+3. Testing
+   - create correct testing
+   - automate testing
+4. Swagger doc
+  - generate correct and easy to use swagger api
+  - consistence response body and response error
+5. Dockerfile
   - create correct dockerfile
-4. Makefile
+6. Makefile
    - create correct makefile
-5. Docker-compose
+7. Docker-compose
   - create correct docker compose file
   - create docker-compose-test.yml file
-6. Deploy and host go-fiber web app
+8. Deploy and host go-fiber web app
    - CI/CD
    - Heroku
 
@@ -27,3 +33,5 @@ Run Service Locally
 3. swag init
 4. make run-dependencies
 5. go run main.go
+
+Run Testing
