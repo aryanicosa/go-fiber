@@ -3,7 +3,6 @@ package queries
 import (
 	"errors"
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +12,7 @@ type UserQueries struct {
 }
 
 // GetUserByID query for getting one User by given ID.
-func (q *UserQueries) GetUserByID(id uuid.UUID) (models.User, error) {
+func (q *UserQueries) GetUserByID(id string) (models.User, error) {
 	// Define User variable.
 	user := models.User{}
 
@@ -65,7 +64,7 @@ func (q *UserQueries) CreateUser(u *models.User) error {
 	return nil
 }
 
-func (q *UserQueries) DeleteUser(id uuid.UUID) error {
+func (q *UserQueries) DeleteUser(id string) error {
 	// Define User variable.
 	user := models.User{}
 

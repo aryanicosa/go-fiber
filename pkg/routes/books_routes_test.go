@@ -1,110 +1,524 @@
 package routes
 
 import (
-	"io"
-	"net/http/httptest"
-	"strings"
-	"testing"
-
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/aryanicosa/go-fiber-rest-api/app/controllers"
+	"github.com/aryanicosa/go-fiber-rest-api/app/models"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/repository"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
+	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
+	"github.com/aryanicosa/go-fiber-rest-api/platform/migrations"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"log"
+	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
 )
 
-func TestPrivateRoutes(t *testing.T) {
+func TestBookRoutes(t *testing.T) {
 	// Load .env.test file from the root folder.
 	if err := godotenv.Load("../../.env.test"); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	// Create a sample data string.
-	dataString := `{"id": "00000000-0000-0000-0000-000000000000"}`
+	// Define Fiber app.
+	app = fiber.New()
 
-	// Create token with `book:delete` credential.
-	tokenOnlyDelete, err := utils.GenerateNewTokens(
-		uuid.NewString(),
-		[]string{"book:delete"},
-	)
+	// init connect to db
+	_, err := database.InitDBConnection()
 	if err != nil {
-		panic(err)
+		log.Fatal("fail to load database")
 	}
 
-	// Create token without any credentials.
-	tokenNoAccess, err := utils.GenerateNewTokens(
-		uuid.NewString(),
-		[]string{},
-	)
+	// migration
+	migrationFileSource := os.Getenv("SQL_SOURCE_PATH")
+	err = migrations.Migrate(migrationFileSource)
 	if err != nil {
-		panic(err)
+		log.Fatal("database migration fail")
 	}
-
-	// Define a structure for specifying input and output data of a single test case.
-	tests := []struct {
-		description   string
-		route         string // input route
-		method        string // input method
-		tokenString   string // input token
-		body          io.Reader
-		expectedError bool
-		expectedCode  int
-	}{
-		{
-			description:   "delete book without JWT and body",
-			route:         "/api/v1/book",
-			method:        "DELETE",
-			tokenString:   "",
-			body:          nil,
-			expectedError: false,
-			expectedCode:  400,
-		},
-		{
-			description:   "delete book without right credentials",
-			route:         "/api/v1/book",
-			method:        "DELETE",
-			tokenString:   "Bearer " + tokenNoAccess.Access,
-			body:          strings.NewReader(dataString),
-			expectedError: false,
-			expectedCode:  403,
-		},
-		{
-			description:   "delete book with credentials",
-			route:         "/api/v1/book",
-			method:        "DELETE",
-			tokenString:   "Bearer " + tokenOnlyDelete.Access,
-			body:          strings.NewReader(dataString),
-			expectedError: false,
-			expectedCode:  404,
-		},
-	}
-
-	// Define a new Fiber app.
-	app := fiber.New()
 
 	// Define routes.
 	BooksRoutes(app)
 
-	// Iterate through test single test cases
-	for _, test := range tests {
-		// Create a new http request with the route from the test case.
-		req := httptest.NewRequest(test.method, test.route, test.body)
-		req.Header.Set("Authorization", test.tokenString)
-		req.Header.Set("Content-Type", "application/json")
+	// test function
+	TestCreateBook(t)
+	TestGetBookById(t)
+	TestGetBookAll(t)
+}
 
-		// Perform the request plain with the app.
-		resp, err := app.Test(req, -1) // the -1 disables request latency
-
-		// Verify, that no error occurred, that is not expected
-		assert.Equalf(t, test.expectedError, err != nil, test.description)
-
-		// As expected errors lead to broken responses,
-		// the next test case needs to be processed.
-		if test.expectedError {
-			continue
-		}
-
-		// Verify, if the status code is as expected.
-		assert.Equalf(t, test.expectedCode, resp.StatusCode, test.description)
+func TestCreateBook(t *testing.T) {
+	db, err := database.UserDB()
+	if err != nil {
+		log.Fatal("fail connect user db")
 	}
+
+	suffix := utils.String(12)
+	user := &models.User{
+		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Email:        fmt.Sprintf("test%s@mail.com", suffix),
+		PasswordHash: utils.GeneratePassword("Password123"),
+		UserStatus:   0,
+		UserRole:     repository.AdminRoleName,
+	}
+	err = db.CreateUser(user)
+	if err != nil {
+		log.Fatal("unable to create user")
+	}
+
+	// Create token with `book:create` credential.
+	tokenOnlyCreate, err := utils.GenerateNewTokens(
+		user.ID,
+		[]string{"book:create"},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Define a structure for specifying input and output data of a single test case.
+	test := struct {
+		route        string // input route
+		method       string // input method
+		expectedCode int
+	}{
+		route:        "/v1/book",
+		method:       "POST",
+		expectedCode: 201,
+	}
+
+	book := &models.Book{
+		Title:      "Test Title",
+		Author:     "John Doe",
+		BookStatus: 0,
+		BookAttrs: models.BookAttrs{
+			Picture:     "Test Pic",
+			Description: "This book is test book",
+			Rating:      6,
+		},
+	}
+	reqBodyStr, _ := json.Marshal(book)
+
+	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req.Header.Add("Authorization", "Bearer "+tokenOnlyCreate.Access)
+	req.Header.Add("Content-Type", "application/json")
+
+	// Perform the request plain with the app.
+	resp, err := app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to sign in user test")
+	}
+
+	var createBookResponse models.Book
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(responseBodyBytes, &createBookResponse)
+
+	defer func() {
+		err = db.DeleteUser(user.ID)
+		if err != nil {
+			log.Fatal("fail to delete user")
+		}
+		dbBook, err := database.BookDB()
+		if err != nil {
+			log.Fatal("fail connect book db")
+		}
+		err = dbBook.DeleteBook(createBookResponse.ID)
+		if err != nil {
+			log.Fatal("Fail to delete book")
+		}
+	}()
+
+	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.NotEmpty(t, createBookResponse.ID)
+}
+
+func TestGetBookById(t *testing.T) {
+	db, err := database.UserDB()
+	if err != nil {
+		log.Fatal("fail connect user db")
+	}
+
+	suffix := utils.String(12)
+	user := &models.User{
+		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Email:        fmt.Sprintf("test%s@mail.com", suffix),
+		PasswordHash: utils.GeneratePassword("Password123"),
+		UserStatus:   0,
+		UserRole:     repository.AdminRoleName,
+	}
+	err = db.CreateUser(user)
+	if err != nil {
+		log.Fatal("unable to create user")
+	}
+
+	dbBook, err := database.BookDB()
+	if err != nil {
+		log.Fatal("fail connect book db")
+	}
+
+	book := &models.Book{
+		ID:         controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+		UserID:     user.ID,
+		Title:      "Test Title",
+		Author:     "John Doe",
+		BookStatus: 0,
+		BookAttrs: models.BookAttrs{
+			Picture:     "Picture",
+			Description: "Description",
+			Rating:      10,
+		},
+	}
+
+	err = dbBook.CreateBook(book)
+	if err != nil {
+		log.Fatal("fail to create book")
+	}
+
+	// Define a structure for specifying input and output data of a single test case.
+	test := struct {
+		route        string // input route
+		method       string // input method
+		expectedCode int
+	}{
+		route:        "/v1/book/" + book.ID,
+		method:       "GET",
+		expectedCode: 200,
+	}
+
+	req := httptest.NewRequest(test.method, test.route, nil)
+	req.Header.Add("Content-Type", "application/json")
+
+	// Perform the request plain with the app.
+	resp, err := app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to sign in user test")
+	}
+
+	var getBookResponse models.Book
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(responseBodyBytes, &getBookResponse)
+
+	defer func() {
+		err = db.DeleteUser(user.ID)
+		if err != nil {
+			log.Fatal("fail to delete user")
+		}
+		err = dbBook.DeleteBook(getBookResponse.ID)
+		if err != nil {
+			log.Fatal("Fail to delete book")
+		}
+	}()
+
+	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.NotEmpty(t, getBookResponse.ID)
+}
+
+func TestGetBookAll(t *testing.T) {
+	db, err := database.UserDB()
+	if err != nil {
+		log.Fatal("fail connect user db")
+	}
+
+	suffix := utils.String(12)
+	user := &models.User{
+		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Email:        fmt.Sprintf("test%s@mail.com", suffix),
+		PasswordHash: utils.GeneratePassword("Password123"),
+		UserStatus:   0,
+		UserRole:     repository.AdminRoleName,
+	}
+	err = db.CreateUser(user)
+	if err != nil {
+		log.Fatal("unable to create user")
+	}
+
+	dbBook, err := database.BookDB()
+	if err != nil {
+		log.Fatal("fail connect book db")
+	}
+
+	books := []models.Book{
+		{
+			ID:         controllers.GenerateUUIDWithoutHyphen(),
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+			UserID:     user.ID,
+			Title:      "Test Title",
+			Author:     "John Doe",
+			BookStatus: 0,
+			BookAttrs: models.BookAttrs{
+				Picture:     "Picture",
+				Description: "Description",
+				Rating:      10,
+			},
+		},
+		{
+			ID:         controllers.GenerateUUIDWithoutHyphen(),
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+			UserID:     user.ID,
+			Title:      "Test Title 2",
+			Author:     "John Doe",
+			BookStatus: 0,
+			BookAttrs: models.BookAttrs{
+				Picture:     "Picture 2",
+				Description: "Description 2",
+				Rating:      10,
+			},
+		},
+	}
+
+	for _, book := range books {
+		err = dbBook.CreateBook(&book)
+		if err != nil {
+			log.Fatal("fail to create book")
+		}
+	}
+
+	// Define a structure for specifying input and output data of a single test case.
+	test := struct {
+		route        string // input route
+		method       string // input method
+		expectedCode int
+	}{
+		route:        "/v1/books",
+		method:       "GET",
+		expectedCode: 200,
+	}
+
+	req := httptest.NewRequest(test.method, test.route, nil)
+	req.Header.Add("Content-Type", "application/json")
+
+	// Perform the request plain with the app.
+	resp, err := app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to sign in user test")
+	}
+
+	var getBooksResponse []models.Book
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(responseBodyBytes, &getBooksResponse)
+
+	defer func() {
+		for _, book := range books {
+			err = dbBook.DeleteBook(book.ID)
+			if err != nil {
+				log.Fatal("Fail to delete book")
+			}
+		}
+		err = db.DeleteUser(user.ID)
+		if err != nil {
+			log.Fatal("fail to delete user")
+		}
+	}()
+
+	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	for _, bookResponse := range getBooksResponse {
+		assert.NotEmpty(t, bookResponse.ID)
+	}
+}
+
+func TestUpdateBookById(t *testing.T) {
+	db, err := database.UserDB()
+	if err != nil {
+		log.Fatal("fail connect user db")
+	}
+
+	suffix := utils.String(12)
+	user := &models.User{
+		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Email:        fmt.Sprintf("test%s@mail.com", suffix),
+		PasswordHash: utils.GeneratePassword("Password123"),
+		UserStatus:   0,
+		UserRole:     repository.AdminRoleName,
+	}
+	err = db.CreateUser(user)
+	if err != nil {
+		log.Fatal("unable to create user")
+	}
+
+	dbBook, err := database.BookDB()
+	if err != nil {
+		log.Fatal("fail connect book db")
+	}
+
+	book := &models.Book{
+		ID:         controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+		UserID:     user.ID,
+		Title:      "Test Title",
+		Author:     "John Doe",
+		BookStatus: 0,
+		BookAttrs: models.BookAttrs{
+			Picture:     "Picture",
+			Description: "Description",
+			Rating:      10,
+		},
+	}
+
+	err = dbBook.CreateBook(book)
+	if err != nil {
+		log.Fatal("fail to create book")
+	}
+
+	// Create token with `book:create` credential.
+	tokenAdmin, err := utils.GenerateNewTokens(
+		user.ID,
+		[]string{"book:create", "book:update", "book:delete"},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Define a structure for specifying input and output data of a single test case.
+	test := struct {
+		route        string // input route
+		method       string // input method
+		expectedCode int
+	}{
+		route:        "/v1/book/" + book.ID,
+		method:       "PUT",
+		expectedCode: 201,
+	}
+
+	bookUpdate := &models.Book{
+		Title:      "Test Title Update",
+		Author:     "John Doe",
+		BookStatus: 0,
+		BookAttrs: models.BookAttrs{
+			Picture:     "Test Pic update",
+			Description: "This book is test book update",
+			Rating:      6,
+		},
+	}
+	reqBodyStr, _ := json.Marshal(bookUpdate)
+
+	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req.Header.Add("Authorization", "Bearer "+tokenAdmin.Access)
+	req.Header.Add("Content-Type", "application/json")
+
+	// Perform the request plain with the app.
+	resp, err := app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to sign in user test")
+	}
+
+	var updateBookResponse models.Book
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(responseBodyBytes, &updateBookResponse)
+
+	defer func() {
+		err = db.DeleteUser(user.ID)
+		if err != nil {
+			log.Fatal("fail to delete user")
+		}
+		err = dbBook.DeleteBook(updateBookResponse.ID)
+		if err != nil {
+			log.Fatal("Fail to delete book")
+		}
+	}()
+
+	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.NotEmpty(t, updateBookResponse.ID)
+}
+
+func TestDeleteBookById(t *testing.T) {
+	db, err := database.UserDB()
+	if err != nil {
+		log.Fatal("fail connect user db")
+	}
+
+	suffix := utils.String(12)
+	user := &models.User{
+		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Email:        fmt.Sprintf("test%s@mail.com", suffix),
+		PasswordHash: utils.GeneratePassword("Password123"),
+		UserStatus:   0,
+		UserRole:     repository.AdminRoleName,
+	}
+	err = db.CreateUser(user)
+	if err != nil {
+		log.Fatal("unable to create user")
+	}
+
+	dbBook, err := database.BookDB()
+	if err != nil {
+		log.Fatal("fail connect book db")
+	}
+
+	book := &models.Book{
+		ID:         controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+		UserID:     user.ID,
+		Title:      "Test Title",
+		Author:     "John Doe",
+		BookStatus: 0,
+		BookAttrs: models.BookAttrs{
+			Picture:     "Picture",
+			Description: "Description",
+			Rating:      10,
+		},
+	}
+
+	err = dbBook.CreateBook(book)
+	if err != nil {
+		log.Fatal("fail to create book")
+	}
+
+	// Create token with `book:create` credential.
+	tokenAdmin, err := utils.GenerateNewTokens(
+		user.ID,
+		[]string{"book:create", "book:update", "book:delete"},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Define a structure for specifying input and output data of a single test case.
+	test := struct {
+		route        string // input route
+		method       string // input method
+		expectedCode int
+	}{
+		route:        "/v1/book/" + book.ID,
+		method:       "DELETE",
+		expectedCode: 204,
+	}
+
+	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(book.ID))
+	req.Header.Add("Authorization", "Bearer "+tokenAdmin.Access)
+	req.Header.Add("Content-Type", "application/json")
+
+	// Perform the request plain with the app.
+	resp, err := app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to sign in user test")
+	}
+
+	defer func() {
+		err = db.DeleteUser(user.ID)
+		if err != nil {
+			log.Fatal("fail to delete user")
+		}
+	}()
+
+	assert.Equal(t, test.expectedCode, resp.StatusCode)
 }

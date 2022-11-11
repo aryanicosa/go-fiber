@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/aryanicosa/go-fiber-rest-api/app/controllers"
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/repository"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/migrations"
@@ -13,6 +15,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -33,7 +36,7 @@ func TestUserRoutes(t *testing.T) {
 	// init connect to db
 	_, err := database.InitDBConnection()
 	if err != nil {
-		log.Fatal("could not load database")
+		log.Fatal("fail to load database")
 	}
 
 	// migration
@@ -46,16 +49,18 @@ func TestUserRoutes(t *testing.T) {
 	// Define routes.
 	UsersRoutes(app)
 
+	// test function
 	TestUserSignUp(t)
+	TestUserSignIn(t)
+	TestUserRenewToken(t)
+	TestUserSignOut(t)
 }
 
 func TestUserSignUp(t *testing.T) {
 	test := struct {
-		description  string
 		route        string // input route
 		expectedCode int
 	}{
-		description:  "user sign up",
 		route:        "/v1/user/sign/up",
 		expectedCode: 201,
 	}
@@ -66,47 +71,214 @@ func TestUserSignUp(t *testing.T) {
 		Password: "Password123",
 		UserRole: "admin",
 	}
-	resBodyStr, _ := json.Marshal(reqBody)
+	reqBodyStr, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", test.route, bytes.NewBufferString(string(resBodyStr)))
+	req := httptest.NewRequest("POST", test.route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
 
 	// Perform the request plain with the app.
 	resp, err := app.Test(req, -1) // the -1 disables request latency
 	if err != nil {
-		log.Fatal("fail sign up user test")
+		log.Fatal("fail to sign up user test")
 	}
 
 	var userSignUpResponse models.User
 	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &userSignUpResponse)
 
-	fmt.Println(resp)
-	fmt.Println(resp.Body)
-	fmt.Println(string(responseBodyBytes))
-	fmt.Println(userSignUpResponse)
+	defer func() {
+		db, err := database.UserDB()
+		if err != nil {
+			fmt.Println("fail to connect user db")
+		}
 
-	db, err := database.UserDB()
-	if err != nil {
-		fmt.Println("fail connect user db")
-	}
-	err = db.DeleteUser(userSignUpResponse.ID)
-	if err != nil {
-		fmt.Println("fail delete user")
-	}
+		err = db.DeleteUser(userSignUpResponse.ID)
+		if err != nil {
+			fmt.Println("fail to delete user")
+		}
+	}()
 
 	assert.Equal(t, test.expectedCode, resp.StatusCode)
 	assert.Equal(t, reqBody.Email, userSignUpResponse.Email)
 }
 
 func TestUserSignIn(t *testing.T) {
+	db, err := database.UserDB()
+	if err != nil {
+		fmt.Println("fail connect user db")
+	}
 
+	suffix := utils.String(12)
+	user := &models.User{
+		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Email:        fmt.Sprintf("test%s@mail.com", suffix),
+		PasswordHash: utils.GeneratePassword("Password123"),
+		UserStatus:   0,
+		UserRole:     repository.UserRoleName,
+	}
+	err = db.CreateUser(user)
+	if err != nil {
+		log.Fatal("unable to create user")
+	}
+
+	test := struct {
+		route        string // input route
+		expectedCode int
+	}{
+		route:        "/v1/user/sign/in",
+		expectedCode: 200,
+	}
+
+	reqBody := &models.SignIn{
+		Email:    user.Email,
+		Password: "Password123",
+	}
+	reqBodyStr, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest("POST", test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req.Header.Add("Content-Type", "application/json")
+
+	// Perform the request plain with the app.
+	resp, err := app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to sign in user test")
+	}
+
+	var userSignInResponse utils.Tokens
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(responseBodyBytes, &userSignInResponse)
+
+	defer func() {
+		err = db.DeleteUser(user.ID)
+		if err != nil {
+			fmt.Println("fail to delete user")
+		}
+	}()
+
+	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.NotEmpty(t, userSignInResponse.Access)
+	assert.NotEmpty(t, userSignInResponse.Refresh)
 }
 
 func TestUserRenewToken(t *testing.T) {
+	db, err := database.UserDB()
+	if err != nil {
+		fmt.Println("fail connect user db")
+	}
 
+	suffix := utils.String(12)
+	user := &models.User{
+		ID:           controllers.GenerateUUIDWithoutHyphen(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		Email:        fmt.Sprintf("test%s@mail.com", suffix),
+		PasswordHash: utils.GeneratePassword("Password123"),
+		UserStatus:   0,
+		UserRole:     repository.UserRoleName,
+	}
+	err = db.CreateUser(user)
+	if err != nil {
+		log.Fatal("unable to create user")
+	}
+
+	test := struct {
+		route        string // input route
+		expectedCode int
+	}{
+		route:        "/v1/user/sign/in",
+		expectedCode: 200,
+	}
+
+	reqBody := &models.SignIn{
+		Email:    user.Email,
+		Password: "Password123",
+	}
+	reqBodyStr, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest("POST", test.route, bytes.NewBufferString(string(reqBodyStr)))
+	req.Header.Add("Content-Type", "application/json")
+
+	// Perform the request plain with the app.
+	resp, err := app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to sign in user test")
+	}
+
+	var userSignInResponse utils.Tokens
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(responseBodyBytes, &userSignInResponse)
+
+	assert.Equal(t, test.expectedCode, resp.StatusCode)
+	assert.NotEmpty(t, userSignInResponse.Access)
+	assert.NotEmpty(t, userSignInResponse.Refresh)
+
+	testRenew := struct {
+		route        string // input route
+		expectedCode int
+	}{
+		route:        "/v1/user/token/renew",
+		expectedCode: 200,
+	}
+
+	reqRenewBody := &models.Renew{
+		RefreshToken: userSignInResponse.Refresh,
+	}
+	reqBodyStr, _ = json.Marshal(reqRenewBody)
+
+	req = httptest.NewRequest("POST", testRenew.route, bytes.NewBufferString(string(reqBodyStr)))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer "+userSignInResponse.Access)
+
+	// Perform the request plain with the app.
+	resp, err = app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to renew user token test")
+	}
+
+	var userRenewResponse utils.Tokens
+	responseBodyBytes, _ = ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(responseBodyBytes, &userRenewResponse)
+
+	defer func() {
+		err = db.DeleteUser(user.ID)
+		if err != nil {
+			fmt.Println("fail to delete user")
+		}
+	}()
+
+	assert.Equal(t, testRenew.expectedCode, resp.StatusCode)
+	assert.NotEmpty(t, userRenewResponse.Access)
+	assert.NotEmpty(t, userRenewResponse.Refresh)
 }
 
 func TestUserSignOut(t *testing.T) {
+	tokenOnly, err := utils.GenerateNewTokens(
+		controllers.GenerateUUIDWithoutHyphen(),
+		[]string{},
+	)
+	if err != nil {
+		panic(err)
+	}
 
+	testSignOut := struct {
+		route        string // input route
+		expectedCode int
+	}{
+		route:        "/v1/user/sign/out",
+		expectedCode: 204,
+	}
+
+	req := httptest.NewRequest("POST", testSignOut.route, nil)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer "+tokenOnly.Access)
+
+	// Perform the request plain with the app.
+	resp, err := app.Test(req, -1) // the -1 disables request latency
+	if err != nil {
+		log.Fatal("fail to renew user token test")
+	}
+
+	assert.Equal(t, testSignOut.expectedCode, resp.StatusCode)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/cache"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -51,7 +52,7 @@ func UserSignUp(c *fiber.Ctx) error {
 	user := &models.User{}
 
 	// Set initialized default data for user:
-	user.ID = uuid.New()
+	user.ID = GenerateUUIDWithoutHyphen()
 	user.CreatedAt = time.Now()
 	user.Email = signUp.Email
 	user.PasswordHash = utils.GeneratePassword(signUp.Password)
@@ -135,7 +136,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Generate a new pair of access and refresh tokens.
-	tokens, err := utils.GenerateNewTokens(foundedUser.ID.String(), credentials)
+	tokens, err := utils.GenerateNewTokens(foundedUser.ID, credentials)
 	if err != nil {
 		// Return status 500 and token generation error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -145,7 +146,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Define user ID.
-	userID := foundedUser.ID.String()
+	userID := foundedUser.ID
 
 	// Create a new Redis connection.
 	connRedis, err := cache.RedisConnection()
@@ -168,11 +169,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Return status 200 OK.
-	return c.Status(fiber.StatusOK).JSON(
-		utils.Tokens{
-			Access:  tokens.Access,
-			Refresh: tokens.Refresh,
-		})
+	return c.Status(fiber.StatusOK).JSON(tokens)
 }
 
 func UserSignOut(c *fiber.Ctx) error {
@@ -187,7 +184,7 @@ func UserSignOut(c *fiber.Ctx) error {
 	}
 
 	// Define user ID.
-	userID := claims.UserID.String()
+	userID := claims.UserID
 
 	// Create a new Redis connection.
 	connRedis, err := cache.RedisConnection()
@@ -230,7 +227,7 @@ func RenewTokens(c *fiber.Ctx) error {
 	// Set expiration time from JWT data of current user.
 	expiresAccessToken := claims.Expires
 
-	// Checking, if now time greather than Access token expiration time.
+	// Checking, if now time greater than Access token expiration time.
 	if now > expiresAccessToken {
 		// Return status 401 and unauthorized error message.
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -239,7 +236,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create a new renew refresh token struct.
+	// Create a new renewal refresh token struct.
 	renew := &models.Renew{}
 
 	// Checking received data from JSON body.
@@ -261,7 +258,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		})
 	}
 
-	// Checking, if now time greather than Refresh token expiration time.
+	// Checking, if now time greater than Refresh token expiration time.
 	if now < expiresRefreshToken {
 		// Define user ID.
 		userID := claims.UserID
@@ -288,7 +285,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		}
 
 		// Generate JWT Access & Refresh tokens.
-		tokens, err := utils.GenerateNewTokens(userID.String(), credentials)
+		tokens, err := utils.GenerateNewTokens(userID, credentials)
 		if err != nil {
 			// Return status 500 and token generation error.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -308,7 +305,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		}
 
 		// Save refresh token to Redis.
-		errRedis := connRedis.Set(context.Background(), userID.String(), tokens.Refresh, 0).Err()
+		errRedis := connRedis.Set(context.Background(), userID, tokens.Refresh, 0).Err()
 		if errRedis != nil {
 			// Return status 500 and Redis connection error.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -317,14 +314,7 @@ func RenewTokens(c *fiber.Ctx) error {
 			})
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"error": false,
-			"msg":   nil,
-			"tokens": fiber.Map{
-				"access":  tokens.Access,
-				"refresh": tokens.Refresh,
-			},
-		})
+		return c.Status(fiber.StatusOK).JSON(tokens)
 	} else {
 		// Return status 401 and unauthorized error message.
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -332,4 +322,10 @@ func RenewTokens(c *fiber.Ctx) error {
 			"msg":   "unauthorized, your session was ended earlier",
 		})
 	}
+}
+
+func GenerateUUIDWithoutHyphen() string {
+	UUID := uuid.New()
+	userId := strings.Replace(UUID.String(), "-", "", -1)
+	return userId
 }
