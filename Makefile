@@ -1,4 +1,4 @@
-.PHONY: clean critic security lint test build run
+.PHONY: clean critic security lint test build run swag run-dependencies run-test-dependencies
 
 APP_NAME = server
 BUILD_DIR = $(PWD)/build
@@ -78,3 +78,6 @@ run-dependencies:
 
 run-test-dependencies:
 	docker-compose -f docker-compose-test.yml up
+
+run-test:
+	go test -v -cover ./...

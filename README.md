@@ -2,23 +2,26 @@
 
 TODO list:
 1. Controller
-   - Create consistence response model
+   - refactor code to use token expire and credential checker utility (p2)
 2. Utility
-   - Create generic error response function handler
+   - Create token expire and credential checker (p2)
 3. Testing
-   - create correct testing
-   - automate testing
+   - create clean and correct testing (p1) : only open testing db once
+   - automate testing with Github action (p1)
 4. Swagger doc
-  - generate correct and easy to use swagger api
-  - consistence response body and response error
+   - generate correct and easy to use swagger api (p1)
+   - consistence response body and response error (done)
 5. Dockerfile
-  - create correct dockerfile
+   - create correct dockerfile (p1)
 6. Makefile
-   - create correct makefile
+   - create correct makefile (p1)
 7. Docker-compose
-  - create correct docker compose file
-  - create docker-compose-test.yml file
-8. Deploy and host go-fiber web app
+   - create correct docker compose file
+   - create docker-compose-test.yml file (done)
+   - create docker-compose-dependencies.yml file for local development (done)
+8. Response
+  - create constants for type of error response
+9. Deploy and host go-fiber web app
    - CI/CD
    - Heroku
 
@@ -33,5 +36,3 @@ Run Service Locally
 3. swag init
 4. make run-dependencies
 5. go run main.go
-
-Run Testing // TODO

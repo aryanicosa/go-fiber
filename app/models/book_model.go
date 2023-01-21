@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+// AllBooks struct to return all books
+type AllBooks struct {
+	Books []Book `json:"books"`
+	Count int64
+}
+
 // Book struct to describe book object.
 type Book struct {
 	ID         uuid.UUID `json:"id" validate:"required,uuid"`

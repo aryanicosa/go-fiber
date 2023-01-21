@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/response"
 	"github.com/gofiber/fiber/v2"
 	jwtMiddleware "github.com/gofiber/jwt/v2"
 	"os"
@@ -20,17 +21,11 @@ func JWTProtected() func(*fiber.Ctx) error {
 }
 
 func jwtError(c *fiber.Ctx, err error) error {
-	// Return status 401 and failed authentication error.
+	// Return status 400 and failed bad request error.
 	if err.Error() == "Missing or malformed JWT" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusBadRequest, err.Error())
 	}
 
 	// Return status 401 and failed authentication error.
-	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-		"error": true,
-		"msg":   err.Error(),
-	})
+	return response.RespondError(c, fiber.StatusUnauthorized, err.Error())
 }

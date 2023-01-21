@@ -21,6 +21,8 @@ import (
 	"time"
 )
 
+var app *fiber.App
+
 func TestBookRoutes(t *testing.T) {
 	// Load .env.test file from the root folder.
 	if err := godotenv.Load("../../.env.test"); err != nil {
@@ -45,12 +47,6 @@ func TestBookRoutes(t *testing.T) {
 
 	// Define routes.
 	BooksRoutes(app)
-
-	// test function
-	TestCreateBook(t)
-	TestGetBookById(t)
-	TestGetBookAll(t)
-	TestDeleteBookById(t)
 }
 
 func TestCreateBook(t *testing.T) {
@@ -220,6 +216,7 @@ func TestGetBookById(t *testing.T) {
 		}
 	}()
 
+	fmt.Print(string(responseBodyBytes))
 	assert.Equal(t, test.expectedCode, resp.StatusCode)
 	assert.NotEmpty(t, getBookResponse.ID)
 }
@@ -398,9 +395,13 @@ func TestUpdateBookById(t *testing.T) {
 	}
 
 	bookUpdate := &models.Book{
+		ID:         book.ID,
+		UserID:     user.ID,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 		Title:      "Test Title Update",
 		Author:     "John Doe",
-		BookStatus: 0,
+		BookStatus: 1,
 		BookAttrs: models.BookAttrs{
 			Picture:     "Test Pic update",
 			Description: "This book is test book update",

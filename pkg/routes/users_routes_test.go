@@ -22,8 +22,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var app *fiber.App
-
 func TestUserRoutes(t *testing.T) {
 	// Load .env.test file from the root folder
 	if err := godotenv.Load("../../.env.test"); err != nil {
@@ -48,12 +46,6 @@ func TestUserRoutes(t *testing.T) {
 
 	// Define routes.
 	UsersRoutes(app)
-
-	// test function
-	TestUserSignUp(t)
-	TestUserSignIn(t)
-	TestUserRenewToken(t)
-	TestUserSignOut(t)
 }
 
 func TestUserSignUp(t *testing.T) {
@@ -98,6 +90,7 @@ func TestUserSignUp(t *testing.T) {
 		}
 	}()
 
+	fmt.Print(string(responseBodyBytes))
 	assert.Equal(t, test.expectedCode, resp.StatusCode)
 	assert.Equal(t, reqBody.Email, userSignUpResponse.Email)
 }

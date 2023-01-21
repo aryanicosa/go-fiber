@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"github.com/aryanicosa/go-fiber-rest-api/app/models"
+	"github.com/aryanicosa/go-fiber-rest-api/pkg/response"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/cache"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
@@ -19,10 +20,7 @@ func UserSignUp(c *fiber.Ctx) error {
 	// Checking received data from JSON body.
 	if err := c.BodyParser(signUp); err != nil {
 		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusBadRequest, "unable to parse request body")
 	}
 
 	// Create a new validator for a User model.
@@ -31,20 +29,14 @@ func UserSignUp(c *fiber.Ctx) error {
 	// Validate sign up fields.
 	if err := validate.Struct(signUp); err != nil {
 		// Return, if some fields are not valid.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   utils.ValidatorErrors(err),
-		})
+		return response.RespondError(c, fiber.StatusBadRequest, utils.ValidatorErrors(err))
 	}
 
 	// Checking role from sign up data.
 	role, err := utils.VerifyRole(signUp.UserRole)
 	if err != nil {
 		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusBadRequest, err.Error())
 	}
 
 	// Create a new user struct.
@@ -61,33 +53,24 @@ func UserSignUp(c *fiber.Ctx) error {
 	// Validate user fields.
 	if err := validate.Struct(user); err != nil {
 		// Return, if some fields are not valid.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   utils.ValidatorErrors(err),
-		})
+		return response.RespondError(c, fiber.StatusBadRequest, utils.ValidatorErrors(err))
 	}
 
 	// Create a new user with validated data.
 	db, err := database.UserDB()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 	if err := db.CreateUser(user); err != nil {
 		// Return status 500 and create user process error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	// Delete password hash field from JSON view.
 	user.PasswordHash = ""
 
 	// Return status 201 OK.
-	return c.Status(fiber.StatusCreated).JSON(user)
+	return response.RespondSuccess(c, fiber.StatusCreated, user)
 }
 
 func UserSignIn(c *fiber.Ctx) error {
@@ -97,10 +80,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	// Checking received data from JSON body.
 	if err := c.BodyParser(signIn); err != nil {
 		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusBadRequest, "unable to parse request body")
 	}
 
 	// Get user by email.
@@ -108,40 +88,28 @@ func UserSignIn(c *fiber.Ctx) error {
 	foundedUser, err := db.GetUserByEmail(signIn.Email)
 	if err != nil {
 		// Return, if user not found.
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusNotFound, err.Error())
 	}
 
 	// Compare given user password with stored in found user.
 	compareUserPassword := utils.ComparePasswords(foundedUser.PasswordHash, signIn.Password)
 	if !compareUserPassword {
 		// Return, if password is not compare to stored in database.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   "wrong user email address or password",
-		})
+		return response.RespondError(c, fiber.StatusUnauthorized, "wrong user email address or password")
 	}
 
 	// Get role credentials from founded user.
 	credentials, err := utils.GetCredentialsByRole(foundedUser.UserRole)
 	if err != nil {
-		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		// Return status 403 and error message.
+		return response.RespondError(c, fiber.StatusForbidden, err.Error())
 	}
 
 	// Generate a new pair of access and refresh tokens.
 	tokens, err := utils.GenerateNewTokens(foundedUser.ID.String(), credentials)
 	if err != nil {
 		// Return status 500 and token generation error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	// Define user ID.
@@ -151,24 +119,18 @@ func UserSignIn(c *fiber.Ctx) error {
 	connRedis, err := cache.RedisConnection()
 	if err != nil {
 		// Return status 500 and Redis connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	// Save refresh token to Redis.
 	errSaveToRedis := connRedis.Set(context.Background(), userID, tokens.Refresh, 0).Err()
 	if errSaveToRedis != nil {
 		// Return status 500 and Redis connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   errSaveToRedis.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, errSaveToRedis.Error())
 	}
 
 	// Return status 200 OK.
-	return c.Status(fiber.StatusOK).JSON(tokens)
+	return response.RespondSuccess(c, fiber.StatusOK, tokens)
 }
 
 func UserSignOut(c *fiber.Ctx) error {
@@ -176,10 +138,7 @@ func UserSignOut(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		// Return status 500 and JWT parse error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	// Define user ID.
@@ -189,24 +148,18 @@ func UserSignOut(c *fiber.Ctx) error {
 	connRedis, err := cache.RedisConnection()
 	if err != nil {
 		// Return status 500 and Redis connection error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	// Save refresh token to Redis.
 	errDelFromRedis := connRedis.Del(context.Background(), userID).Err()
 	if errDelFromRedis != nil {
 		// Return status 500 and Redis deletion error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   errDelFromRedis.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, errDelFromRedis.Error())
 	}
 
 	// Return status 204 no content.
-	return c.SendStatus(fiber.StatusNoContent)
+	return response.RespondSuccess(c, fiber.StatusNoContent, "")
 }
 
 func RenewTokens(c *fiber.Ctx) error {
@@ -217,10 +170,7 @@ func RenewTokens(c *fiber.Ctx) error {
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
 		// Return status 500 and JWT parse error.
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	// Set expiration time from JWT data of current user.
@@ -229,10 +179,7 @@ func RenewTokens(c *fiber.Ctx) error {
 	// Checking, if now time greater than Access token expiration time.
 	if now > expiresAccessToken {
 		// Return status 401 and unauthorized error message.
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": true,
-			"msg":   "unauthorized, check expiration time of your token",
-		})
+		return response.RespondError(c, fiber.StatusUnauthorized, "unauthorized or expired token")
 	}
 
 	// Create a new renewal refresh token struct.
@@ -241,20 +188,14 @@ func RenewTokens(c *fiber.Ctx) error {
 	// Checking received data from JSON body.
 	if err := c.BodyParser(renew); err != nil {
 		// Return, if JSON data is not correct.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusBadRequest, "unable to parse request body")
 	}
 
 	// Set expiration time from Refresh token of current user.
 	expiresRefreshToken, err := utils.ParseRefreshToken(renew.RefreshToken)
 	if err != nil {
 		// Return status 400 and error message.
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+		return response.RespondError(c, fiber.StatusBadRequest, err.Error())
 	}
 
 	// Checking, if now time greater than Refresh token expiration time.
@@ -267,58 +208,40 @@ func RenewTokens(c *fiber.Ctx) error {
 		foundedUser, err := db.GetUserByID(userID)
 		if err != nil {
 			// Return, if user not found.
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": true,
-				"msg":   "user with the given ID is not found",
-			})
+			return response.RespondError(c, fiber.StatusNotFound, "user with the given ID is not found")
 		}
 
 		// Get role credentials from founded user.
 		credentials, err := utils.GetCredentialsByRole(foundedUser.UserRole)
 		if err != nil {
 			// Return status 400 and error message.
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": true,
-				"msg":   err.Error(),
-			})
+			return response.RespondError(c, fiber.StatusBadRequest, err.Error())
 		}
 
 		// Generate JWT Access & Refresh tokens.
 		tokens, err := utils.GenerateNewTokens(userID.String(), credentials)
 		if err != nil {
 			// Return status 500 and token generation error.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": true,
-				"msg":   err.Error(),
-			})
+			return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 		}
 
 		// Create a new Redis connection.
 		connRedis, err := cache.RedisConnection()
 		if err != nil {
 			// Return status 500 and Redis connection error.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": true,
-				"msg":   err.Error(),
-			})
+			return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 		}
 
 		// Save refresh token to Redis.
 		errRedis := connRedis.Set(context.Background(), userID.String(), tokens.Refresh, 0).Err()
 		if errRedis != nil {
 			// Return status 500 and Redis connection error.
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": true,
-				"msg":   errRedis.Error(),
-			})
+			return response.RespondError(c, fiber.StatusInternalServerError, errRedis.Error())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(tokens)
+		return response.RespondSuccess(c, fiber.StatusOK, tokens)
 	} else {
 		// Return status 401 and unauthorized error message.
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": true,
-			"msg":   "unauthorized, your session was ended earlier",
-		})
+		return response.RespondError(c, fiber.StatusUnauthorized, "unauthorized, your session was ended earlier")
 	}
 }

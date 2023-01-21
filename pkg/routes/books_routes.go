@@ -15,7 +15,7 @@ func BooksRoutes(a *fiber.App) {
 	route.Post("/book", middleware.JWTProtected(), controllers.CreateBook) // create a new book
 
 	// Routes for PUT method:
-	route.Put("/book", middleware.JWTProtected(), controllers.UpdateBook) // update one book by ID
+	route.Put("/book/:id", middleware.JWTProtected(), controllers.UpdateBook) // update one book by ID
 
 	// Routes for DELETE method:
 	route.Delete("/book/:id", middleware.JWTProtected(), controllers.DeleteBook) // delete one book by ID

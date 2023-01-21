@@ -8,14 +8,23 @@ import (
 	"gorm.io/gorm"
 )
 
-var db *gorm.DB
+var (
+	db  *gorm.DB
+	err error
+)
+
+// Queries struct for collect all app queries.
+type Queries struct {
+	*queries.UserQueries // load queries from User model
+	*queries.BookQueries // load queries from Book model
+}
 
 // InitDBConnection func for connection to PostgreSQL database.
-func InitDBConnection() (*gorm.DB, error) {
+func InitDBConnection() (*Queries, error) {
 	// Build PostgreSQL connection URL.
-	postgresConnURL, err := utils.ConnectionURLBuilder("postgres")
-	if err != nil {
-		return nil, err
+	postgresConnURL, errConnectDb := utils.ConnectionURLBuilder("postgres")
+	if errConnectDb != nil {
+		return nil, errConnectDb
 	}
 
 	// Define database connection for PostgreSQL.
@@ -24,7 +33,10 @@ func InitDBConnection() (*gorm.DB, error) {
 		return nil, fmt.Errorf("error, not connected to database, %w", err)
 	}
 
-	return db, nil
+	return &Queries{
+		UserQueries: &queries.UserQueries{DB: db},
+		BookQueries: &queries.BookQueries{DB: db},
+	}, nil
 }
 
 // UserDB used for init users db query
