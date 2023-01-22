@@ -13,20 +13,20 @@ import (
 
 // Tokens struct to describe tokens object.
 type Tokens struct {
-	Access  string
-	Refresh string
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
-// GenerateNewTokens func for generate a new Access & Refresh tokens.
+// GenerateNewTokens func for generate a new AccessToken & RefreshToken tokens.
 func GenerateNewTokens(id string, credentials []string) (*Tokens, error) {
-	// Generate JWT Access token.
+	// Generate JWT AccessToken token.
 	accessToken, err := generateNewAccessToken(id, credentials)
 	if err != nil {
 		// Return token generation error.
 		return nil, err
 	}
 
-	// Generate JWT Refresh token.
+	// Generate JWT RefreshToken token.
 	refreshToken, err := generateNewRefreshToken()
 	if err != nil {
 		// Return token generation error.
@@ -34,8 +34,8 @@ func GenerateNewTokens(id string, credentials []string) (*Tokens, error) {
 	}
 
 	return &Tokens{
-		Access:  accessToken,
-		Refresh: refreshToken,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 }
 

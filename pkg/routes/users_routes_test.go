@@ -67,6 +67,7 @@ func TestUserSignUp(t *testing.T) {
 
 	req := httptest.NewRequest("POST", test.route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Basic YWRtaW46c2VjcmV0")
 
 	// Perform the request plain with the app.
 	resp, err := app.Test(req, -1) // the -1 disables request latency
@@ -132,6 +133,7 @@ func TestUserSignIn(t *testing.T) {
 
 	req := httptest.NewRequest("POST", test.route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Basic YWRtaW46c2VjcmV0")
 
 	// Perform the request plain with the app.
 	resp, err := app.Test(req, -1) // the -1 disables request latency
@@ -151,8 +153,8 @@ func TestUserSignIn(t *testing.T) {
 	}()
 
 	assert.Equal(t, test.expectedCode, resp.StatusCode)
-	assert.NotEmpty(t, userSignInResponse.Access)
-	assert.NotEmpty(t, userSignInResponse.Refresh)
+	assert.NotEmpty(t, userSignInResponse.AccessToken)
+	assert.NotEmpty(t, userSignInResponse.RefreshToken)
 }
 
 func TestUserRenewToken(t *testing.T) {
@@ -192,6 +194,7 @@ func TestUserRenewToken(t *testing.T) {
 
 	req := httptest.NewRequest("POST", test.route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Basic YWRtaW46c2VjcmV0")
 
 	// Perform the request plain with the app.
 	resp, err := app.Test(req, -1) // the -1 disables request latency
@@ -204,8 +207,8 @@ func TestUserRenewToken(t *testing.T) {
 	_ = json.Unmarshal(responseBodyBytes, &userSignInResponse)
 
 	assert.Equal(t, test.expectedCode, resp.StatusCode)
-	assert.NotEmpty(t, userSignInResponse.Access)
-	assert.NotEmpty(t, userSignInResponse.Refresh)
+	assert.NotEmpty(t, userSignInResponse.AccessToken)
+	assert.NotEmpty(t, userSignInResponse.RefreshToken)
 
 	testRenew := struct {
 		route        string // input route
@@ -216,13 +219,13 @@ func TestUserRenewToken(t *testing.T) {
 	}
 
 	reqRenewBody := &models.Renew{
-		RefreshToken: userSignInResponse.Refresh,
+		RefreshToken: userSignInResponse.RefreshToken,
 	}
 	reqBodyStr, _ = json.Marshal(reqRenewBody)
 
 	req = httptest.NewRequest("POST", testRenew.route, bytes.NewBufferString(string(reqBodyStr)))
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+userSignInResponse.Access)
+	req.Header.Add("Authorization", "Bearer "+userSignInResponse.AccessToken)
 
 	// Perform the request plain with the app.
 	resp, err = app.Test(req, -1) // the -1 disables request latency
@@ -242,8 +245,8 @@ func TestUserRenewToken(t *testing.T) {
 	}()
 
 	assert.Equal(t, testRenew.expectedCode, resp.StatusCode)
-	assert.NotEmpty(t, userRenewResponse.Access)
-	assert.NotEmpty(t, userRenewResponse.Refresh)
+	assert.NotEmpty(t, userRenewResponse.AccessToken)
+	assert.NotEmpty(t, userRenewResponse.RefreshToken)
 }
 
 func TestUserSignOut(t *testing.T) {
@@ -265,7 +268,7 @@ func TestUserSignOut(t *testing.T) {
 
 	req := httptest.NewRequest("POST", testSignOut.route, nil)
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+tokenOnly.Access)
+	req.Header.Add("Authorization", "Bearer "+tokenOnly.AccessToken)
 
 	// Perform the request plain with the app.
 	resp, err := app.Test(req, -1) // the -1 disables request latency

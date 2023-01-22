@@ -12,11 +12,11 @@ func UsersRoutes(a *fiber.App) {
 	route := a.Group("/v1")
 
 	// Routes for public routes:
-	route.Post("/user/sign/up", controllers.UserSignUp) // register a new user
-	route.Post("/user/sign/in", controllers.UserSignIn) // auth, return Access & Refresh tokens
+	route.Post("/user/sign/up", middleware.BasicAuth(), controllers.UserSignUp) // register a new user
+	route.Post("/user/sign/in", middleware.BasicAuth(), controllers.UserSignIn) // auth, return AccessToken & RefreshToken tokens
 
 	// Routes for privates routes:
 	route.Post("/user/sign/out", middleware.JWTProtected(), controllers.UserSignOut)    // de-authorization user
-	route.Post("/user/token/renew", middleware.JWTProtected(), controllers.RenewTokens) // renew Access & Refresh tokens
+	route.Post("/user/token/renew", middleware.JWTProtected(), controllers.RenewTokens) // renew AccessToken & RefreshToken tokens
 
 }

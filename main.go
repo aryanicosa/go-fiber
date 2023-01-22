@@ -14,6 +14,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// @title Fiber Example API
+// @version 1.0
+// @description This is a sample swagger for Go Fiber Rest API
+// @contact.name API Support
+// @contact.email aryanicosa@gmail.com
+// @host localhost:8080
+// @BasePath /
 func main() {
 	// Define Fiber config.
 	config := configs.FiberConfig()
@@ -43,9 +50,10 @@ func main() {
 	}
 
 	// Routes.
-	routes.SwaggerRoute(app)  // Register a route for API Docs (Swagger).
-	routes.UsersRoutes(app)   // Register a public routes for app.
-	routes.BooksRoutes(app)   // Register a private routes for app.
+	routes.SwaggerRoute(app) // Register a route for API Docs (Swagger).
+	routes.UsersRoutes(app)
+	routes.BooksRoutes(app)
+	routes.MiscRoutes(app)
 	routes.NotFoundRoute(app) // Register route for 404 Error.
 
 	// Start server (with or without graceful shutdown).

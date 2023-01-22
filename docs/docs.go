@@ -10,102 +10,18 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "API Support",
+            "email": "aryanicosa@gmail.com"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/book": {
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update book.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Book"
-                ],
-                "summary": "update book",
-                "parameters": [
-                    {
-                        "description": "Book ID",
-                        "name": "id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Title",
-                        "name": "title",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Author",
-                        "name": "author",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "User ID",
-                        "name": "user_id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Book status",
-                        "name": "book_status",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "description": "Book attributes",
-                        "name": "book_attrs",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.BookAttrs"
-                        }
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
+        "/v1/misc/base64encode": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Create a new book.",
+                "description": "Encode input string to Base64 string",
                 "consumes": [
                     "application/json"
                 ],
@@ -113,186 +29,43 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Book"
+                    "Miscellaneous"
                 ],
-                "summary": "create a new book",
+                "summary": "Encode String to Base64",
                 "parameters": [
                     {
-                        "description": "Title",
-                        "name": "title",
+                        "description": "arbitrary string",
+                        "name": "StringToEncode",
                         "in": "body",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
                     },
-                    {
-                        "description": "Author",
-                        "name": "author",
-                        "in": "body",
-                        "required": true,
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/response.HTTPError"
                         }
                     },
-                    {
-                        "description": "User ID",
-                        "name": "user_id",
-                        "in": "body",
-                        "required": true,
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/response.HTTPError"
                         }
                     },
-                    {
-                        "description": "Book attributes",
-                        "name": "book_attrs",
-                        "in": "body",
-                        "required": true,
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.BookAttrs"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Book"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Delete book by given ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Book"
-                ],
-                "summary": "delete book by given ID",
-                "parameters": [
-                    {
-                        "description": "Book ID",
-                        "name": "id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/book/{id}": {
-            "get": {
-                "description": "Get book by given ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Book"
-                ],
-                "summary": "get book by given ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Book ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Book"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/books": {
-            "get": {
-                "description": "Get all exists books.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Books"
-                ],
-                "summary": "get all exists books",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Book"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/token/renew": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Renew access and refresh tokens.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Token"
-                ],
-                "summary": "renew access and refresh tokens",
-                "parameters": [
-                    {
-                        "description": "Refresh token",
-                        "name": "refresh_token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/response.HTTPError"
                         }
                     }
                 }
@@ -300,7 +73,7 @@ const docTemplate = `{
         },
         "/v1/user/sign/in": {
             "post": {
-                "description": "Auth user and return access and refresh token.",
+                "description": "Sign In a User to get access token\nvalue of Authorization field is \"Basic base64string_of_username:secret\"\nuse /v1/misc/encode to generate your base64 encoded string",
                 "consumes": [
                     "application/json"
                 ],
@@ -310,104 +83,22 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "auth user and return access and refresh token",
+                "summary": "Sign In",
                 "parameters": [
                     {
-                        "description": "User Email",
-                        "name": "email",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "type": "string",
+                        "description": "Basic Auth",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
                     },
                     {
-                        "description": "User Password",
-                        "name": "password",
+                        "description": "User Credentials",
+                        "name": "models.SignIn",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/user/sign/out": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "De-authorize user and delete refresh token from Redis.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "de-authorize user and delete refresh token from Redis",
-                "responses": {
-                    "204": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/user/sign/up": {
-            "post": {
-                "description": "Create a new user.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "create a new user",
-                "parameters": [
-                    {
-                        "description": "Email",
-                        "name": "email",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Password",
-                        "name": "password",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "User role",
-                        "name": "user_role",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.SignIn"
                         }
                     }
                 ],
@@ -415,7 +106,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/utils.Tokens"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.HTTPError"
                         }
                     }
                 }
@@ -423,94 +132,37 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Book": {
-            "type": "object",
-            "required": [
-                "author",
-                "book_attrs",
-                "book_status",
-                "id",
-                "title",
-                "user_id"
-            ],
-            "properties": {
-                "author": {
-                    "type": "string",
-                    "maxLength": 255
-                },
-                "book_attrs": {
-                    "$ref": "#/definitions/models.BookAttrs"
-                },
-                "book_status": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string",
-                    "maxLength": 255
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.BookAttrs": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "picture": {
-                    "type": "string"
-                },
-                "rating": {
-                    "type": "integer",
-                    "maximum": 10,
-                    "minimum": 1
-                }
-            }
-        },
-        "models.User": {
+        "models.SignIn": {
             "type": "object",
             "required": [
                 "email",
-                "id",
-                "password_hash",
-                "user_role",
-                "user_status"
+                "password"
             ],
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string",
                     "maxLength": 255
                 },
-                "id": {
-                    "type": "string"
-                },
-                "password_hash": {
+                "password": {
                     "type": "string",
                     "maxLength": 255
-                },
-                "updated_at": {
+                }
+            }
+        },
+        "response.HTTPError": {
+            "type": "object",
+            "properties": {
+                "errorMessage": {}
+            }
+        },
+        "utils.Tokens": {
+            "type": "object",
+            "properties": {
+                "access_token": {
                     "type": "string"
                 },
-                "user_role": {
-                    "type": "string",
-                    "maxLength": 25
-                },
-                "user_status": {
-                    "type": "integer"
+                "refresh_token": {
+                    "type": "string"
                 }
             }
         }
@@ -519,12 +171,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Fiber Example API",
+	Description:      "This is a sample swagger for Go Fiber Rest API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

@@ -1,237 +1,46 @@
+basePath: /
 definitions:
-  models.Book:
+  models.SignIn:
     properties:
-      author:
-        maxLength: 255
-        type: string
-      book_attrs:
-        $ref: '#/definitions/models.BookAttrs'
-      book_status:
-        type: integer
-      created_at:
-        type: string
-      id:
-        type: string
-      title:
-        maxLength: 255
-        type: string
-      updated_at:
-        type: string
-      user_id:
-        type: string
-    required:
-    - author
-    - book_attrs
-    - book_status
-    - id
-    - title
-    - user_id
-    type: object
-  models.BookAttrs:
-    properties:
-      description:
-        type: string
-      picture:
-        type: string
-      rating:
-        maximum: 10
-        minimum: 1
-        type: integer
-    type: object
-  models.User:
-    properties:
-      created_at:
-        type: string
       email:
         maxLength: 255
         type: string
-      id:
-        type: string
-      password_hash:
+      password:
         maxLength: 255
         type: string
-      updated_at:
-        type: string
-      user_role:
-        maxLength: 25
-        type: string
-      user_status:
-        type: integer
     required:
     - email
-    - id
-    - password_hash
-    - user_role
-    - user_status
+    - password
     type: object
-info:
-  contact: {}
-paths:
-  /v1/book:
-    delete:
-      consumes:
-      - application/json
-      description: Delete book by given ID.
-      parameters:
-      - description: Book ID
-        in: body
-        name: id
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: ok
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: delete book by given ID
-      tags:
-      - Book
-    post:
-      consumes:
-      - application/json
-      description: Create a new book.
-      parameters:
-      - description: Title
-        in: body
-        name: title
-        required: true
-        schema:
-          type: string
-      - description: Author
-        in: body
-        name: author
-        required: true
-        schema:
-          type: string
-      - description: User ID
-        in: body
-        name: user_id
-        required: true
-        schema:
-          type: string
-      - description: Book attributes
-        in: body
-        name: book_attrs
-        required: true
-        schema:
-          $ref: '#/definitions/models.BookAttrs'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Book'
-      security:
-      - ApiKeyAuth: []
-      summary: create a new book
-      tags:
-      - Book
-    put:
-      consumes:
-      - application/json
-      description: Update book.
-      parameters:
-      - description: Book ID
-        in: body
-        name: id
-        required: true
-        schema:
-          type: string
-      - description: Title
-        in: body
-        name: title
-        required: true
-        schema:
-          type: string
-      - description: Author
-        in: body
-        name: author
-        required: true
-        schema:
-          type: string
-      - description: User ID
-        in: body
-        name: user_id
-        required: true
-        schema:
-          type: string
-      - description: Book status
-        in: body
-        name: book_status
-        required: true
-        schema:
-          type: integer
-      - description: Book attributes
-        in: body
-        name: book_attrs
-        required: true
-        schema:
-          $ref: '#/definitions/models.BookAttrs'
-      produces:
-      - application/json
-      responses:
-        "202":
-          description: ok
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: update book
-      tags:
-      - Book
-  /v1/book/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Get book by given ID.
-      parameters:
-      - description: Book ID
-        in: path
-        name: id
-        required: true
+  response.HTTPError:
+    properties:
+      errorMessage: {}
+    type: object
+  utils.Tokens:
+    properties:
+      access_token:
         type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Book'
-      summary: get book by given ID
-      tags:
-      - Book
-  /v1/books:
-    get:
-      consumes:
-      - application/json
-      description: Get all exists books.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/models.Book'
-            type: array
-      summary: get all exists books
-      tags:
-      - Books
-  /v1/token/renew:
+      refresh_token:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: aryanicosa@gmail.com
+    name: API Support
+  description: This is a sample swagger for Go Fiber Rest API
+  title: Fiber Example API
+  version: "1.0"
+paths:
+  /v1/misc/base64encode:
     post:
       consumes:
       - application/json
-      description: Renew access and refresh tokens.
+      description: Encode input string to Base64 string
       parameters:
-      - description: Refresh token
+      - description: arbitrary string
         in: body
-        name: refresh_token
+        name: StringToEncode
         required: true
         schema:
           type: string
@@ -239,91 +48,64 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
-      summary: renew access and refresh tokens
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HTTPError'
+      summary: Encode String to Base64
       tags:
-      - Token
+      - Miscellaneous
   /v1/user/sign/in:
     post:
       consumes:
       - application/json
-      description: Auth user and return access and refresh token.
+      description: |-
+        Sign In a User to get access token
+        value of Authorization field is "Basic base64string_of_username:secret"
+        use /v1/misc/encode to generate your base64 encoded string
       parameters:
-      - description: User Email
+      - description: Basic Auth
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User Credentials
         in: body
-        name: email
+        name: models.SignIn
         required: true
         schema:
-          type: string
-      - description: User Password
-        in: body
-        name: password
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-      summary: auth user and return access and refresh token
-      tags:
-      - User
-  /v1/user/sign/out:
-    post:
-      consumes:
-      - application/json
-      description: De-authorize user and delete refresh token from Redis.
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: ok
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: de-authorize user and delete refresh token from Redis
-      tags:
-      - User
-  /v1/user/sign/up:
-    post:
-      consumes:
-      - application/json
-      description: Create a new user.
-      parameters:
-      - description: Email
-        in: body
-        name: email
-        required: true
-        schema:
-          type: string
-      - description: Password
-        in: body
-        name: password
-        required: true
-        schema:
-          type: string
-      - description: User role
-        in: body
-        name: user_role
-        required: true
-        schema:
-          type: string
+          $ref: '#/definitions/models.SignIn'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.User'
-      summary: create a new user
+            $ref: '#/definitions/utils.Tokens'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HTTPError'
+      summary: Sign In
       tags:
       - User
 swagger: "2.0"

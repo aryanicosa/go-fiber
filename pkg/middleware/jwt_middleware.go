@@ -3,9 +3,34 @@ package middleware
 import (
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/response"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	jwtMiddleware "github.com/gofiber/jwt/v2"
 	"os"
 )
+
+func BasicAuth() func(*fiber.Ctx) error {
+	config := basicauth.Config{
+		Users: map[string]string{
+			os.Getenv("BASIC_AUTH_USER"): os.Getenv("BASIC_AUTH_PASSWORD"),
+		},
+		Realm: "Forbidden",
+		Authorizer: func(user, pass string) bool {
+			if user == "john" && pass == "doe" {
+				return true
+			}
+			if user == "admin" && pass == "secret" {
+				return true
+			}
+			return false
+		},
+		Unauthorized: func(c *fiber.Ctx) error {
+			return response.RespondError(c, fiber.StatusUnauthorized, "unauthorize access")
+		},
+		ContextUsername: "_user",
+		ContextPassword: "_pass",
+	}
+	return basicauth.New(config)
+}
 
 // JWTProtected func for specify routes group with JWT authentication.
 // See: https://github.com/gofiber/jwt

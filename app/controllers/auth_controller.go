@@ -73,6 +73,21 @@ func UserSignUp(c *fiber.Ctx) error {
 	return response.RespondSuccess(c, fiber.StatusCreated, user)
 }
 
+// UserSignIn godoc
+// @Summary 	Sign In
+// @Description Sign In a User to get access token
+// @Description value of Authorization field is "Basic base64string_of_username:secret"
+// @Description use /v1/misc/encode to generate your base64 encoded string
+// @Accept 		json
+// @Produce 	json
+// @Tags 						User
+// @Param Authorization header string true "Basic Auth"
+// @Param models.SignIn body models.SignIn true "User Credentials"
+// @Success 200 {object} utils.Tokens
+// @Failure 400 {object} response.HTTPError
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Router /v1/user/sign/in [post]
 func UserSignIn(c *fiber.Ctx) error {
 	// Create a new user auth struct.
 	signIn := &models.SignIn{}
@@ -123,7 +138,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Save refresh token to Redis.
-	errSaveToRedis := connRedis.Set(context.Background(), userID, tokens.Refresh, 0).Err()
+	errSaveToRedis := connRedis.Set(context.Background(), userID, tokens.RefreshToken, 0).Err()
 	if errSaveToRedis != nil {
 		// Return status 500 and Redis connection error.
 		return response.RespondError(c, fiber.StatusInternalServerError, errSaveToRedis.Error())
@@ -176,7 +191,7 @@ func RenewTokens(c *fiber.Ctx) error {
 	// Set expiration time from JWT data of current user.
 	expiresAccessToken := claims.Expires
 
-	// Checking, if now time greater than Access token expiration time.
+	// Checking, if now time greater than AccessToken token expiration time.
 	if now > expiresAccessToken {
 		// Return status 401 and unauthorized error message.
 		return response.RespondError(c, fiber.StatusUnauthorized, "unauthorized or expired token")
@@ -191,14 +206,14 @@ func RenewTokens(c *fiber.Ctx) error {
 		return response.RespondError(c, fiber.StatusBadRequest, "unable to parse request body")
 	}
 
-	// Set expiration time from Refresh token of current user.
+	// Set expiration time from RefreshToken token of current user.
 	expiresRefreshToken, err := utils.ParseRefreshToken(renew.RefreshToken)
 	if err != nil {
 		// Return status 400 and error message.
 		return response.RespondError(c, fiber.StatusBadRequest, err.Error())
 	}
 
-	// Checking, if now time greater than Refresh token expiration time.
+	// Checking, if now time greater than RefreshToken token expiration time.
 	if now < expiresRefreshToken {
 		// Define user ID.
 		userID := claims.UserID
@@ -218,7 +233,7 @@ func RenewTokens(c *fiber.Ctx) error {
 			return response.RespondError(c, fiber.StatusBadRequest, err.Error())
 		}
 
-		// Generate JWT Access & Refresh tokens.
+		// Generate JWT AccessToken & RefreshToken tokens.
 		tokens, err := utils.GenerateNewTokens(userID.String(), credentials)
 		if err != nil {
 			// Return status 500 and token generation error.
@@ -233,7 +248,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		}
 
 		// Save refresh token to Redis.
-		errRedis := connRedis.Set(context.Background(), userID.String(), tokens.Refresh, 0).Err()
+		errRedis := connRedis.Set(context.Background(), userID.String(), tokens.RefreshToken, 0).Err()
 		if errRedis != nil {
 			// Return status 500 and Redis connection error.
 			return response.RespondError(c, fiber.StatusInternalServerError, errRedis.Error())

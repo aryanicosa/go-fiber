@@ -103,7 +103,7 @@ func TestCreateBook(t *testing.T) {
 	reqBodyStr, _ := json.Marshal(book)
 
 	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
-	req.Header.Add("Authorization", "Bearer "+tokenOnlyCreate.Access)
+	req.Header.Add("Authorization", "Bearer "+tokenOnlyCreate.AccessToken)
 	req.Header.Add("Content-Type", "application/json")
 
 	// Perform the request plain with the app.
@@ -411,7 +411,7 @@ func TestUpdateBookById(t *testing.T) {
 	reqBodyStr, _ := json.Marshal(bookUpdate)
 
 	req := httptest.NewRequest(test.method, test.route, bytes.NewBufferString(string(reqBodyStr)))
-	req.Header.Add("Authorization", "Bearer "+tokenAdmin.Access)
+	req.Header.Add("Authorization", "Bearer "+tokenAdmin.AccessToken)
 	req.Header.Add("Content-Type", "application/json")
 
 	// Perform the request plain with the app.
@@ -506,7 +506,7 @@ func TestDeleteBookById(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(test.method, test.route, nil)
-	req.Header.Add("Authorization", "Bearer "+tokenAdmin.Access)
+	req.Header.Add("Authorization", "Bearer "+tokenAdmin.AccessToken)
 	req.Header.Add("Content-Type", "application/json")
 
 	// Perform the request plain with the app.

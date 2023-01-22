@@ -3,6 +3,7 @@
 TODO list:
 1. Controller
    - refactor code to use token expire and credential checker utility (p2)
+   - add basic auth to user and books api
 2. Utility
    - Create token expire and credential checker (p2)
 3. Testing
