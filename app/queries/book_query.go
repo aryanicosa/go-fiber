@@ -15,7 +15,7 @@ type BookQueries struct {
 // CreateBook method for creating book by given Book object.
 func (q *BookQueries) CreateBook(b *models.Book) error {
 	// Send query to database.
-	err := q.Table("books").Create(&models.Book{
+	err := q.DB.Table("books").Create(&models.Book{
 		ID:         b.ID,
 		CreatedAt:  b.CreatedAt,
 		UpdatedAt:  b.UpdatedAt,
@@ -40,7 +40,7 @@ func (q *BookQueries) GetBooks() ([]models.Book, error) {
 	books := []models.Book{}
 
 	// Send query to database.
-	err := q.Table("books").Find(&books).Error
+	err := q.DB.Table("books").Find(&books).Error
 	if err != nil {
 		// Return empty object and error.
 		return nil, err

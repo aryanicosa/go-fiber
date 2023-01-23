@@ -20,6 +20,6 @@ import (
 // @Router /v1/misc/base64encode [post]
 func EncodeBase64(c *fiber.Ctx) error {
 	EncodedString := base64.StdEncoding.EncodeToString(c.Body())
-	// Return status 200 OK.
+	// Return status 201 OK.
 	return response.RespondSuccess(c, fiber.StatusCreated, EncodedString)
 }

@@ -15,10 +15,7 @@ func BasicAuth() func(*fiber.Ctx) error {
 		},
 		Realm: "Forbidden",
 		Authorizer: func(user, pass string) bool {
-			if user == "john" && pass == "doe" {
-				return true
-			}
-			if user == "admin" && pass == "secret" {
+			if user == os.Getenv("BASIC_AUTH_USER") && pass == os.Getenv("BASIC_AUTH_PASSWORD") {
 				return true
 			}
 			return false

@@ -8,45 +8,15 @@ import (
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/repository"
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
-	"github.com/aryanicosa/go-fiber-rest-api/platform/migrations"
 	"github.com/google/uuid"
 	"io/ioutil"
 	"log"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestUserRoutes(t *testing.T) {
-	// Load .env.test file from the root folder
-	if err := godotenv.Load("../../.env.test"); err != nil {
-		panic(err)
-	}
-
-	// Define Fiber app.
-	app = fiber.New()
-
-	// init connect to db
-	_, err := database.InitDBConnection()
-	if err != nil {
-		log.Fatal("fail to load database")
-	}
-
-	// migration
-	migrationFileSource := os.Getenv("SQL_SOURCE_PATH")
-	err = migrations.Migrate(migrationFileSource)
-	if err != nil {
-		log.Fatal("database migration fail")
-	}
-
-	// Define routes.
-	UsersRoutes(app)
-}
 
 func TestUserSignUp(t *testing.T) {
 	test := struct {
@@ -69,8 +39,8 @@ func TestUserSignUp(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Basic YWRtaW46c2VjcmV0")
 
-	// Perform the request plain with the app.
-	resp, err := app.Test(req, -1) // the -1 disables request latency
+	// Perform the request plain with the AppTest.
+	resp, err := AppTest.Test(req, -1) // the -1 disables request latency
 	if err != nil {
 		log.Fatal("fail to sign up user test")
 	}
@@ -91,7 +61,6 @@ func TestUserSignUp(t *testing.T) {
 		}
 	}()
 
-	fmt.Print(string(responseBodyBytes))
 	assert.Equal(t, test.expectedCode, resp.StatusCode)
 	assert.Equal(t, reqBody.Email, userSignUpResponse.Email)
 }
@@ -135,8 +104,8 @@ func TestUserSignIn(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Basic YWRtaW46c2VjcmV0")
 
-	// Perform the request plain with the app.
-	resp, err := app.Test(req, -1) // the -1 disables request latency
+	// Perform the request plain with the AppTest.
+	resp, err := AppTest.Test(req, -1) // the -1 disables request latency
 	if err != nil {
 		log.Fatal("fail to sign in user test")
 	}
@@ -196,8 +165,8 @@ func TestUserRenewToken(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Basic YWRtaW46c2VjcmV0")
 
-	// Perform the request plain with the app.
-	resp, err := app.Test(req, -1) // the -1 disables request latency
+	// Perform the request plain with the AppTest.
+	resp, err := AppTest.Test(req, -1) // the -1 disables request latency
 	if err != nil {
 		log.Fatal("fail to sign in user test")
 	}
@@ -227,8 +196,8 @@ func TestUserRenewToken(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+userSignInResponse.AccessToken)
 
-	// Perform the request plain with the app.
-	resp, err = app.Test(req, -1) // the -1 disables request latency
+	// Perform the request plain with the AppTest.
+	resp, err = AppTest.Test(req, -1) // the -1 disables request latency
 	if err != nil {
 		log.Fatal("fail to renew user token test")
 	}
@@ -270,8 +239,8 @@ func TestUserSignOut(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+tokenOnly.AccessToken)
 
-	// Perform the request plain with the app.
-	resp, err := app.Test(req, -1) // the -1 disables request latency
+	// Perform the request plain with the AppTest.
+	resp, err := AppTest.Test(req, -1) // the -1 disables request latency
 	if err != nil {
 		log.Fatal("fail to renew user token test")
 	}
