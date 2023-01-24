@@ -53,5 +53,8 @@ jobs:
     - name: Checkout code into go mod dir
       uses: actions/checkout@v3
 
+    - name: Check linter
+      run: make lint
+
     - name: Test
       run: go test -v ./...

@@ -7,23 +7,23 @@ TODO list:
    - refactor code to use token expire and credential checker utility (p2)
    - add basic auth to user and books api
 - Utility
-   - Create token expire and credential checker (p2)
+   - Create token expire and credential checker (p3)
 - Testing
    - create clean and correct testing (p1) : only open testing db once
    - automate testing with Github action (p1)
 - Swagger doc
-   - generate correct and easy to use swagger api (p1)
+   - generate correct and easy to use swagger api (p2)
    - consistence response body and response error (done)
 - Dockerfile
-   - create correct dockerfile (p1)
+   - create correct dockerfile (p2)
 - Makefile
-   - create correct makefile (p1)
+   - create correct makefile (done)
 - Docker-compose
-   - create correct docker compose file
+   - create correct docker compose file, upload image to docker hub (p3)
    - create docker-compose-test.yml file (done)
    - create docker-compose-dependencies.yml file for local development (done)
 - Response
-  - create constants for type of error response
+  - create constants for type of error response (done)
 - Deploy and host go-fiber web app
    - CI/CD
    - Heroku
