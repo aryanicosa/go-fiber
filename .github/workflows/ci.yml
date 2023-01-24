@@ -14,7 +14,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-   
+
     services:
       postgres:
         image: postgres:12
@@ -22,14 +22,13 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: postgrestest
-        ports: 
+        ports:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        
 
       redis:
         image: redis:5-alpine
@@ -42,17 +41,17 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
-    
+
+
     steps:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
         go-version: 1.18
       id: go
-      
+
     - name: Checkout code into go mod dir
-    - uses: actions/checkout@v3
+      uses: actions/checkout@v3
 
     - name: Test
       run: go test -v ./...
