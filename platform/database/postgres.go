@@ -40,11 +40,11 @@ func InitDBConnection() (*Queries, error) {
 }
 
 // UserDB used for init users db query
-func UserDB() (*queries.UserQueries, error) {
-	return &queries.UserQueries{DB: db}, nil
+func UserDB() *queries.UserQueries {
+	return &queries.UserQueries{DB: db}
 }
 
 // BookDB used for init books db query
-func BookDB() (*queries.BookQueries, error) {
-	return &queries.BookQueries{DB: db}, nil
+func BookDB() *queries.BookQueries {
+	return &queries.BookQueries{DB: db}
 }

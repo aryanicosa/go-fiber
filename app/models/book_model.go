@@ -10,8 +10,16 @@ import (
 
 // AllBooks struct to return all books
 type AllBooks struct {
-	Books []Book `json:"books"`
+	Books []BookForPublic `json:"books"`
 	Count int64
+}
+
+type BookForPublic struct {
+	ID         uuid.UUID `json:"id" validate:"required,uuid"`
+	Title      string    `json:"title" validate:"required,lte=255"`
+	Author     string    `json:"author" validate:"required,lte=255"`
+	BookStatus int       `json:"book_status" validate:"required,len=1"`
+	BookAttrs  BookAttrs `json:"book_attrs" validate:"required,dive"`
 }
 
 // Book struct to describe book object.

@@ -57,7 +57,7 @@ func UserSignUp(c *fiber.Ctx) error {
 	}
 
 	// Create a new user with validated data.
-	db, err := database.UserDB()
+	db := database.UserDB()
 	if err != nil {
 		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
@@ -99,7 +99,7 @@ func UserSignIn(c *fiber.Ctx) error {
 	}
 
 	// Get user by email.
-	db, err := database.UserDB()
+	db := database.UserDB()
 	foundedUser, err := db.GetUserByEmail(signIn.Email)
 	if err != nil {
 		// Return, if user not found.
@@ -219,7 +219,7 @@ func RenewTokens(c *fiber.Ctx) error {
 		userID := claims.UserID
 
 		// Get user by ID.
-		db, err := database.UserDB()
+		db := database.UserDB()
 		foundedUser, err := db.GetUserByID(userID)
 		if err != nil {
 			// Return, if user not found.

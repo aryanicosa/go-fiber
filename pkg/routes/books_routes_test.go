@@ -18,10 +18,7 @@ import (
 )
 
 func TestCreateBook(t *testing.T) {
-	db, err := database.UserDB()
-	if err != nil {
-		log.Fatal("fail connect user db")
-	}
+	db := database.UserDB()
 
 	suffix := utils.String(12)
 	user := &models.User{
@@ -33,7 +30,7 @@ func TestCreateBook(t *testing.T) {
 		UserStatus:   0,
 		UserRole:     repository.AdminRoleName,
 	}
-	err = db.CreateUser(user)
+	err := db.CreateUser(user)
 	if err != nil {
 		log.Fatal("unable to create user")
 	}
@@ -89,7 +86,7 @@ func TestCreateBook(t *testing.T) {
 		if err != nil {
 			log.Fatal("fail to delete user")
 		}
-		dbBook, err := database.BookDB()
+		dbBook := database.BookDB()
 		if err != nil {
 			log.Fatal("fail connect book db")
 		}
@@ -104,10 +101,7 @@ func TestCreateBook(t *testing.T) {
 }
 
 func TestGetBookById(t *testing.T) {
-	db, err := database.UserDB()
-	if err != nil {
-		log.Fatal("fail connect user db")
-	}
+	db := database.UserDB()
 
 	suffix := utils.String(12)
 	user := &models.User{
@@ -119,12 +113,12 @@ func TestGetBookById(t *testing.T) {
 		UserStatus:   0,
 		UserRole:     repository.AdminRoleName,
 	}
-	err = db.CreateUser(user)
+	err := db.CreateUser(user)
 	if err != nil {
 		log.Fatal("unable to create user")
 	}
 
-	dbBook, err := database.BookDB()
+	dbBook := database.BookDB()
 	if err != nil {
 		log.Fatal("fail connect book db")
 	}
@@ -162,6 +156,7 @@ func TestGetBookById(t *testing.T) {
 
 	req := httptest.NewRequest(test.method, test.route, nil)
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Basic YWRtaW46c2VjcmV0")
 
 	// Perform the request plain with the AppTest.
 	resp, err := AppTest.Test(req, -1) // the -1 disables request latency
@@ -189,10 +184,7 @@ func TestGetBookById(t *testing.T) {
 }
 
 func TestGetBookAll(t *testing.T) {
-	db, err := database.UserDB()
-	if err != nil {
-		log.Fatal("fail connect user db")
-	}
+	db := database.UserDB()
 
 	suffix := utils.String(12)
 	user := &models.User{
@@ -204,12 +196,12 @@ func TestGetBookAll(t *testing.T) {
 		UserStatus:   0,
 		UserRole:     repository.AdminRoleName,
 	}
-	err = db.CreateUser(user)
+	err := db.CreateUser(user)
 	if err != nil {
 		log.Fatal("unable to create user")
 	}
 
-	dbBook, err := database.BookDB()
+	dbBook := database.BookDB()
 	if err != nil {
 		log.Fatal("fail connect book db")
 	}
@@ -265,6 +257,7 @@ func TestGetBookAll(t *testing.T) {
 
 	req := httptest.NewRequest(test.method, test.route, nil)
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Basic YWRtaW46c2VjcmV0")
 
 	// Perform the request plain with the AppTest.
 	resp, err := AppTest.Test(req, -1) // the -1 disables request latency
@@ -272,7 +265,7 @@ func TestGetBookAll(t *testing.T) {
 		log.Fatal("fail to sign in user test")
 	}
 
-	var getBooksResponse []models.Book
+	var getBooksResponse []models.BookForPublic
 	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &getBooksResponse)
 
@@ -296,10 +289,7 @@ func TestGetBookAll(t *testing.T) {
 }
 
 func TestUpdateBookById(t *testing.T) {
-	db, err := database.UserDB()
-	if err != nil {
-		log.Fatal("fail connect user db")
-	}
+	db := database.UserDB()
 
 	suffix := utils.String(12)
 	user := &models.User{
@@ -311,12 +301,12 @@ func TestUpdateBookById(t *testing.T) {
 		UserStatus:   0,
 		UserRole:     repository.AdminRoleName,
 	}
-	err = db.CreateUser(user)
+	err := db.CreateUser(user)
 	if err != nil {
 		log.Fatal("unable to create user")
 	}
 
-	dbBook, err := database.BookDB()
+	dbBook := database.BookDB()
 	if err != nil {
 		log.Fatal("fail connect book db")
 	}
@@ -407,10 +397,7 @@ func TestUpdateBookById(t *testing.T) {
 }
 
 func TestDeleteBookById(t *testing.T) {
-	db, err := database.UserDB()
-	if err != nil {
-		log.Fatal("fail connect user db")
-	}
+	db := database.UserDB()
 
 	suffix := utils.String(12)
 	user := &models.User{
@@ -422,12 +409,12 @@ func TestDeleteBookById(t *testing.T) {
 		UserStatus:   0,
 		UserRole:     repository.AdminRoleName,
 	}
-	err = db.CreateUser(user)
+	err := db.CreateUser(user)
 	if err != nil {
 		log.Fatal("unable to create user")
 	}
 
-	dbBook, err := database.BookDB()
+	dbBook := database.BookDB()
 	if err != nil {
 		log.Fatal("fail connect book db")
 	}

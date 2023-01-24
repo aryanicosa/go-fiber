@@ -50,7 +50,7 @@ func TestUserSignUp(t *testing.T) {
 	_ = json.Unmarshal(responseBodyBytes, &userSignUpResponse)
 
 	defer func() {
-		db, err := database.UserDB()
+		db := database.UserDB()
 		if err != nil {
 			fmt.Println("fail to connect user db")
 		}
@@ -66,10 +66,7 @@ func TestUserSignUp(t *testing.T) {
 }
 
 func TestUserSignIn(t *testing.T) {
-	db, err := database.UserDB()
-	if err != nil {
-		fmt.Println("fail connect user db")
-	}
+	db := database.UserDB()
 
 	suffix := utils.String(12)
 	user := &models.User{
@@ -81,7 +78,7 @@ func TestUserSignIn(t *testing.T) {
 		UserStatus:   0,
 		UserRole:     repository.UserRoleName,
 	}
-	err = db.CreateUser(user)
+	err := db.CreateUser(user)
 	if err != nil {
 		log.Fatal("unable to create user")
 	}
@@ -127,10 +124,7 @@ func TestUserSignIn(t *testing.T) {
 }
 
 func TestUserRenewToken(t *testing.T) {
-	db, err := database.UserDB()
-	if err != nil {
-		fmt.Println("fail connect user db")
-	}
+	db := database.UserDB()
 
 	suffix := utils.String(12)
 	user := &models.User{
@@ -142,7 +136,7 @@ func TestUserRenewToken(t *testing.T) {
 		UserStatus:   0,
 		UserRole:     repository.UserRoleName,
 	}
-	err = db.CreateUser(user)
+	err := db.CreateUser(user)
 	if err != nil {
 		log.Fatal("unable to create user")
 	}

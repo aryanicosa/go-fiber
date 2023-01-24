@@ -1,0 +1,17 @@
+# ignore file(s) or directory(ies) to be pushed in docker image
+# Files
+.dockerignore
+.editorconfig
+.gitignore
+.env.*
+Dockerfile
+Makefile
+LICENSE
+**/*.md
+**/*_test.go
+*.out
+
+# Folders
+.git/
+.github/
+build/

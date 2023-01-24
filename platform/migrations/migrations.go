@@ -30,6 +30,7 @@ func Migrate(source string) error {
 		log.Fatal(err)
 		return err
 	}
+	//nolint:golint
 	m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
 	return nil
 }

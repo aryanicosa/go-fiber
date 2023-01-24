@@ -21,6 +21,6 @@ func BooksRoutes(a *fiber.App) {
 	route.Delete("/book/:id", middleware.JWTProtected(), controllers.DeleteBook) // delete one book by ID
 
 	// Routes for GET method:
-	route.Get("/books", controllers.GetBooks)   // get list of all books
-	route.Get("/book/:id", controllers.GetBook) // get one book by ID
+	route.Get("/books", middleware.BasicAuth(), controllers.GetBooks)   // get list of all books
+	route.Get("/book/:id", middleware.BasicAuth(), controllers.GetBook) // get one book by ID
 }

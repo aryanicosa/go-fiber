@@ -38,7 +38,7 @@ docker.fiber: docker.fiber.build
 	docker run --rm -d \
 		--name go-fiber \
 		--network dev-network \
-		-p 5000:5000 \
+		-p 8080:8080 \
 		fiber
 
 docker.postgres:
@@ -48,7 +48,7 @@ docker.postgres:
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=password \
 		-e POSTGRES_DB=postgres \
-		-v ${HOME}/dev-postgres/data/:/var/lib/postgresql/data \
+		-v ${PWD}/dev-postgres/data/:/var/lib/postgresql/data \
 		-p 5432:5432 \
 		postgres
 
@@ -73,11 +73,22 @@ docker.stop.redis:
 swag:
 	swag init
 
+# run in local machine using docker-compose
 run-dependencies:
 	docker-compose -f docker-compose-dependencies.yml up
 
+stop-dependencies:
+	docker stop fiber-rest-api-postgres fiber-rest-api-redis
+
+run-local:
+	go run main.go
+
+# test in local machine using docker-compose
 run-test-dependencies:
 	docker-compose -f docker-compose-test.yml up
+
+stop-test-dependencies:
+	docker stop fiber-rest-api-postgres-test fiber-rest-api-redis-test
 
 run-test:
 	go test -v -cover ./...
