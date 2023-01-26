@@ -3,7 +3,7 @@ package routes
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http/httptest"
 	"testing"
@@ -32,7 +32,7 @@ func TestEncodeBase64(t *testing.T) {
 	}
 
 	var encodedResponse string
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	encodedResponse = string(responseBodyBytes)
 
 	assert.Equal(t, test.expectedCode, resp.StatusCode)

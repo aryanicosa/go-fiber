@@ -9,7 +9,7 @@ import (
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
 	"github.com/google/uuid"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http/httptest"
 	"testing"
@@ -46,7 +46,7 @@ func TestUserSignUp(t *testing.T) {
 	}
 
 	var userSignUpResponse models.User
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &userSignUpResponse)
 
 	defer func() {
@@ -108,7 +108,7 @@ func TestUserSignIn(t *testing.T) {
 	}
 
 	var userSignInResponse utils.Tokens
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &userSignInResponse)
 
 	defer func() {
@@ -166,7 +166,7 @@ func TestUserRenewToken(t *testing.T) {
 	}
 
 	var userSignInResponse utils.Tokens
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &userSignInResponse)
 
 	assert.Equal(t, test.expectedCode, resp.StatusCode)
@@ -197,7 +197,7 @@ func TestUserRenewToken(t *testing.T) {
 	}
 
 	var userRenewResponse utils.Tokens
-	responseBodyBytes, _ = ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ = io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &userRenewResponse)
 
 	defer func() {

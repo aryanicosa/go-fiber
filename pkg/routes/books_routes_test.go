@@ -10,7 +10,7 @@ import (
 	"github.com/aryanicosa/go-fiber-rest-api/platform/database"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http/httptest"
 	"testing"
@@ -78,7 +78,7 @@ func TestCreateBook(t *testing.T) {
 	}
 
 	var createBookResponse models.Book
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &createBookResponse)
 
 	defer func() {
@@ -165,7 +165,7 @@ func TestGetBookById(t *testing.T) {
 	}
 
 	var getBookResponse models.Book
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &getBookResponse)
 
 	defer func() {
@@ -266,7 +266,7 @@ func TestGetBookAll(t *testing.T) {
 	}
 
 	var getBooksResponse []models.BookForPublic
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &getBooksResponse)
 
 	defer func() {
@@ -378,7 +378,7 @@ func TestUpdateBookById(t *testing.T) {
 	}
 
 	var updateBookResponse models.Book
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, _ := io.ReadAll(resp.Body)
 	_ = json.Unmarshal(responseBodyBytes, &updateBookResponse)
 
 	defer func() {
