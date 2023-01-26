@@ -15,6 +15,7 @@ Run Service Locally
 # TODO list:
 - Database
   - Simplify database connection and init to be once for all (p1)
+  - create correct database migration (done)
 - Controller
   - refactor code to use token expire and credential checker utility (p2)
   - add basic auth to user and books api (done)
@@ -24,7 +25,7 @@ Run Service Locally
   - create clean and correct testing (p1) : only open testing db once
   - automate testing with Github action (p1)
 - Swagger doc
-  - generate correct and easy to use swagger api (p2)
+  - generate correct and easy to use swagger api (done)
   - consistence response body and response error (done)
 - Dockerfile
   - create correct dockerfile (p2)
