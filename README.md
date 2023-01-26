@@ -12,6 +12,9 @@ Run Service Locally
 4. make run-dependencies
 5. make run-local
 
+**Result**
+![img.png](img.png)
+
 # TODO list:
 - Database
   - Simplify database connection and init to be once for all (p1)
@@ -23,7 +26,7 @@ Run Service Locally
   - Create token expire and credential checker function (p3)
 - Testing
   - create clean and correct testing (p1) : only open testing db once
-  - automate testing with Github action (p1)
+  - automate testing with Github action (done)
 - Swagger doc
   - generate correct and easy to use swagger api (done)
   - consistence response body and response error (done)
@@ -38,5 +41,5 @@ Run Service Locally
 - Response
   - create constants for type of error response (done)
 - Deploy and host go-fiber web app
-  - CI/CD
-  - Heroku
+  - CI/CD - github action
+  - Heroku/gcp/else
