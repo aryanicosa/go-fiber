@@ -1,7 +1,7 @@
 # Building GO rest api using Fiber, PostgreSQL, redis and docker
 
 Run Service Locally
-1. git clone git@github.com:aryanicosa/go-fiber.git
+1. git clone [this repo](https://github.com/aryanicosa/go-fiber)
 2. Install Make, Docker and the following useful Go tools to your system:
    - golang-migrate/migrate for apply migrations
    - github.com/swaggo/swag for auto-generating Swagger API docs
