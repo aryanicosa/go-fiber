@@ -13,6 +13,21 @@ import (
 	"github.com/google/uuid"
 )
 
+// UserSignUp godoc
+// @Description Create a new user.
+// @Description Require Basic Auth
+// @Summary create a new user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BasicAuth
+// @Param models.SignUp body models.SignUp true "User Data"
+// @Success 200 {object} models.User
+// @Failure 400 {object} response.HTTPError
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Success 200 {object} models.User
+// @Router /v1/user/sign/up [post]
 func UserSignUp(c *fiber.Ctx) error {
 	// Create a new user auth struct.
 	signUp := &models.SignUp{}
@@ -76,12 +91,11 @@ func UserSignUp(c *fiber.Ctx) error {
 // UserSignIn godoc
 // @Summary 	Sign In
 // @Description Sign In a User to get access token
-// @Description value of Authorization field is "Basic base64string_of_username:secret"
-// @Description use /v1/misc/encode to generate your base64 encoded string
+// @Description Require Basic Auth
 // @Accept 		json
 // @Produce 	json
 // @Tags 						User
-// @Param Authorization header string true "Basic Auth"
+// @Security BasicAuth
 // @Param models.SignIn body models.SignIn true "User Credentials"
 // @Success 200 {object} utils.Tokens
 // @Failure 400 {object} response.HTTPError
@@ -148,6 +162,17 @@ func UserSignIn(c *fiber.Ctx) error {
 	return response.RespondSuccess(c, fiber.StatusOK, tokens)
 }
 
+// UserSignOut godoc
+// @Summary 	Sign Out
+// @Description de-authorize User and revoke token from redis
+// @Accept 		json
+// @Produce 	json
+// @Tags 						User
+// @Security ApiKeyAuth
+// @Success 204
+// @Failure 400 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Router /v1/user/sign/out [post]
 func UserSignOut(c *fiber.Ctx) error {
 	// Get claims from JWT.
 	claims, err := utils.ExtractTokenMetadata(c)
@@ -177,6 +202,20 @@ func UserSignOut(c *fiber.Ctx) error {
 	return response.RespondSuccess(c, fiber.StatusNoContent, "")
 }
 
+// RenewTokens godoc
+// @Summary 	Get New Access token use refresh token
+// @Description re-authorize a User to get access token using refresh token
+// @Description Require valid user token
+// @Accept 		json
+// @Produce 	json
+// @Tags 						User
+// @Security ApiKeyAuth
+// @Param models.SignIn body models.SignIn true "User Credentials"
+// @Success 200 {object} utils.Tokens
+// @Failure 400 {object} response.HTTPError
+// @Failure 401 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Router /v1/user/sign/renew [post]
 func RenewTokens(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()

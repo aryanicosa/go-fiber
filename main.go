@@ -19,8 +19,11 @@ import (
 // @description This is a sample swagger for Go Fiber Rest API
 // @contact.name API Support
 // @contact.email aryanicosa@gmail.com
-// @host localhost:8080
 // @BasePath /
+// @securityDefinitions.basic BasicAuth
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	// Define Fiber config.
 	config := configs.FiberConfig()
@@ -37,8 +40,8 @@ func main() {
 	}
 
 	// init connect to db
-	_, err = database.InitDBConnection()
-	if err != nil {
+	_, errInitDb := database.InitDBConnection()
+	if errInitDb != nil {
 		log.Fatal("could not load database")
 	}
 

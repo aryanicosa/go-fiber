@@ -24,10 +24,10 @@ type BookForPublic struct {
 
 // Book struct to describe book object.
 type Book struct {
-	ID         uuid.UUID `json:"id" validate:"required,uuid"`
+	ID         uuid.UUID `json:"id" validate:"uuid"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
-	UserID     uuid.UUID `json:"user_id" validate:"required,uuid"`
+	UserID     uuid.UUID `json:"user_id" validate:"uuid"`
 	Title      string    `json:"title" validate:"required,lte=255"`
 	Author     string    `json:"author" validate:"required,lte=255"`
 	BookStatus int       `json:"book_status" validate:"required,len=1"`

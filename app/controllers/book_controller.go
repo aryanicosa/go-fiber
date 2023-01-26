@@ -12,6 +12,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// GetBooks godoc
+// @Description Will display all books
+// @Description Require Basic Auth
+// @Summary Get All Books
+// @Tags Book
+// @Accept json
+// @Produce json
+// @Security BasicAuth
+// @Success 200 {array} models.BookForPublic
+// @Failure 404 {object} response.HTTPError
+// @Router /v1/books [get]
 func GetBooks(c *fiber.Ctx) error {
 	// Get all books.
 	db := database.BookDB()
@@ -41,6 +52,19 @@ func GetBooks(c *fiber.Ctx) error {
 	return response.RespondSuccess(c, fiber.StatusOK, allBooks)
 }
 
+// GetBook godoc
+// @Description Will display specific book by it's ID
+// @Description Require valid user token
+// @Summary Get book by ID
+// @Tags Book
+// @Accept json
+// @Produce json
+// @Security BasicAuth
+// @Param book_id path string true "Book ID"
+// @Success 200 {object} models.Book
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Router /v1/book/id [get]
 func GetBook(c *fiber.Ctx) error {
 	// Catch book ID from URL.
 	id, err := uuid.Parse(c.Params("id"))
@@ -60,6 +84,20 @@ func GetBook(c *fiber.Ctx) error {
 	return response.RespondSuccess(c, fiber.StatusOK, book)
 }
 
+// CreateBook godoc
+// @Description Require valid user token
+// @Summary Create new book
+// @Tags Book
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param models.Book body models.Book true "Book data"
+// @Success 201 {object} models.Book
+// @Failure 400 {object} response.HTTPError
+// @Failure 403 {object} response.HTTPError
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Router /v1/book [post]
 func CreateBook(c *fiber.Ctx) error {
 	// Get now time.
 	now := time.Now().Unix()
@@ -123,6 +161,22 @@ func CreateBook(c *fiber.Ctx) error {
 	return response.RespondSuccess(c, fiber.StatusCreated, book)
 }
 
+// UpdateBook godoc
+// @Description Require valid user token
+// @Summary Update a book
+// @Tags Book
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param book_id path string true "Book ID"
+// @Param models.Book body models.Book true "Book data"
+// @Success 201 {object} models.Book
+// @Failure 400 {object} response.HTTPError
+// @Failure 401 {object} response.HTTPError
+// @Failure 403 {object} response.HTTPError
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Router /v1/book/id [put]
 func UpdateBook(c *fiber.Ctx) error {
 	// Catch book ID from URL.
 	id, err := uuid.Parse(c.Params("id"))
@@ -206,6 +260,21 @@ func UpdateBook(c *fiber.Ctx) error {
 	}
 }
 
+// DeleteBook godoc
+// @Description Require valid user token
+// @Summary Delete a book
+// @Tags Book
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param book_id path string true "Book ID"
+// @Success 204
+// @Failure 400 {object} response.HTTPError
+// @Failure 401 {object} response.HTTPError
+// @Failure 403 {object} response.HTTPError
+// @Failure 404 {object} response.HTTPError
+// @Failure 500 {object} response.HTTPError
+// @Router /v1/book/id [delete]
 func DeleteBook(c *fiber.Ctx) error {
 	// Catch book ID from URL.
 	id, err := uuid.Parse(c.Params("id"))

@@ -6,6 +6,7 @@ import (
 	"github.com/aryanicosa/go-fiber-rest-api/pkg/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 )
 
 var (
@@ -22,9 +23,9 @@ type Queries struct {
 // InitDBConnection func for connection to PostgreSQL database.
 func InitDBConnection() (*Queries, error) {
 	// Build PostgreSQL connection URL.
-	postgresConnURL, errConnectDb := utils.ConnectionURLBuilder("postgres")
-	if errConnectDb != nil {
-		return nil, errConnectDb
+	postgresConnURL, errCreateDBUrl := utils.ConnectionURLBuilder("postgres")
+	if errCreateDBUrl != nil {
+		return nil, errCreateDBUrl
 	}
 
 	// Define database connection for PostgreSQL.
@@ -37,6 +38,15 @@ func InitDBConnection() (*Queries, error) {
 		UserQueries: &queries.UserQueries{DB: db},
 		BookQueries: &queries.BookQueries{DB: db},
 	}, nil
+}
+
+func CloseDBConnection(db *gorm.DB) error {
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("fail closing db connection")
+	}
+	sqlDB.Close()
+	return nil
 }
 
 // UserDB used for init users db query

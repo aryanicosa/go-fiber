@@ -177,7 +177,7 @@ func TestUserRenewToken(t *testing.T) {
 		route        string // input route
 		expectedCode int
 	}{
-		route:        "/v1/user/token/renew",
+		route:        "/v1/user/sign/renew",
 		expectedCode: 200,
 	}
 

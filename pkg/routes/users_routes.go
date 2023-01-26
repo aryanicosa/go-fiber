@@ -16,7 +16,7 @@ func UsersRoutes(a *fiber.App) {
 	route.Post("/user/sign/in", middleware.BasicAuth(), controllers.UserSignIn) // auth, return AccessToken & RefreshToken tokens
 
 	// Routes for privates routes:
-	route.Post("/user/sign/out", middleware.JWTProtected(), controllers.UserSignOut)    // de-authorization user
-	route.Post("/user/token/renew", middleware.JWTProtected(), controllers.RenewTokens) // renew AccessToken & RefreshToken tokens
+	route.Post("/user/sign/out", middleware.JWTProtected(), controllers.UserSignOut)   // de-authorization user
+	route.Post("/user/sign/renew", middleware.JWTProtected(), controllers.RenewTokens) // renew AccessToken & RefreshToken tokens
 
 }

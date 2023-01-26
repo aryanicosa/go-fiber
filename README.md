@@ -1,32 +1,4 @@
-# Building GO rest api boilerplate using Fiber, PostgreSQL, redis and docker
-
-TODO list:
-- Database
-   - Simplify database connection and init to be once for all
-- Controller
-   - refactor code to use token expire and credential checker utility (p2)
-   - add basic auth to user and books api
-- Utility
-   - Create token expire and credential checker (p3)
-- Testing
-   - create clean and correct testing (p1) : only open testing db once
-   - automate testing with Github action (p1)
-- Swagger doc
-   - generate correct and easy to use swagger api (p2)
-   - consistence response body and response error (done)
-- Dockerfile
-   - create correct dockerfile (p2)
-- Makefile
-   - create correct makefile (done)
-- Docker-compose
-   - create correct docker compose file, upload image to docker hub (p3)
-   - create docker-compose-test.yml file (done)
-   - create docker-compose-dependencies.yml file for local development (done)
-- Response
-  - create constants for type of error response (done)
-- Deploy and host go-fiber web app
-   - CI/CD
-   - Heroku
+# Building GO rest api using Fiber, PostgreSQL, redis and docker
 
 Run Service Locally
 1. git clone git@github.com:aryanicosa/go-fiber.git
@@ -39,3 +11,31 @@ Run Service Locally
 3. swag init
 4. make run-dependencies
 5. make run-local
+
+# TODO list:
+- Database
+  - Simplify database connection and init to be once for all (p1)
+- Controller
+  - refactor code to use token expire and credential checker utility (p2)
+  - add basic auth to user and books api (done)
+- Utility
+  - Create token expire and credential checker function (p3)
+- Testing
+  - create clean and correct testing (p1) : only open testing db once
+  - automate testing with Github action (p1)
+- Swagger doc
+  - generate correct and easy to use swagger api (p2)
+  - consistence response body and response error (done)
+- Dockerfile
+  - create correct dockerfile (p2)
+- Makefile
+  - create correct makefile (done)
+- Docker-compose
+  - create correct docker compose file, upload image to docker hub (p3)
+  - create docker-compose-test.yml file (done)
+  - create docker-compose-dependencies.yml file for local development (done)
+- Response
+  - create constants for type of error response (done)
+- Deploy and host go-fiber web app
+  - CI/CD
+  - Heroku
