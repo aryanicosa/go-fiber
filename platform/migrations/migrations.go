@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	"log"
@@ -35,7 +34,7 @@ func Migrate(source string) error {
 		log.Fatal(err)
 		return err
 	}
-	//nolint:golint
+	//nolint:golint // make it catch error once no changes
 	err = m.Up()
 	if err != nil {
 		if err == migrate.ErrNoChange {

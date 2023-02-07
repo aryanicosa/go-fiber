@@ -43,9 +43,12 @@ func InitDBConnection() (*Queries, error) {
 func CloseDBConnection(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatal("fail closing db connection")
+		log.Println("fail catch db connection")
 	}
-	sqlDB.Close()
+	err = sqlDB.Close()
+	if err != nil {
+		log.Fatal("fail close db connection")
+	}
 	return nil
 }
 

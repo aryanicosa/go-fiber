@@ -572,9 +572,7 @@ const docTemplate = `{
                 "author",
                 "book_attrs",
                 "book_status",
-                "id",
-                "title",
-                "user_id"
+                "title"
             ],
             "properties": {
                 "author": {

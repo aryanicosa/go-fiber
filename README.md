@@ -43,3 +43,9 @@ Run Service Locally
 - Deploy and host go-fiber web app
   - CI/CD - github action
   - Heroku/gcp/else
+
+Development Flow:
+- Create some changes
+- in terminal run: make run-test-dependencies
+- open other terminal run: make run
+- If all good, commit changes and push to github

@@ -1,13 +1,15 @@
 .PHONY: clean critic security lint test build run swag run-dependencies run-test-dependencies
 
-APP_NAME = server
-BUILD_DIR = $(PWD)/build
+APP_NAME=server
+BUILD_DIR=$(PWD)/build
+BUILDER_IMAGE=go-fiber-service-builder
 
+# run local development only
 clean:
 	rm -rf ./build
 
 critic:
-	gocritic check -enableAll ./...
+	gocritic check -enableAll -disable=codegenComment ./...
 
 security:
 	gosec ./...
@@ -24,26 +26,28 @@ build: test
 
 run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
+# end of run local development only
 
-docker.run: docker.network docker.postgres swag docker.fiber docker.redis
+# run service with make file command
+docker.run: docker.network docker.postgres docker.redis swag docker.fiber
 
 docker.network:
 	docker network inspect dev-network >/dev/null 2>&1 || \
 	docker network create -d bridge dev-network
 
 docker.fiber.build:
-	docker build -t fiber .
+	docker build -t $(BUILDER_IMAGE) .
 
 docker.fiber: docker.fiber.build
 	docker run --rm -d \
-		--name go-fiber \
+		--name fiber-rest-api-service \
 		--network dev-network \
 		-p 8080:8080 \
-		fiber
+		$(BUILDER_IMAGE)
 
 docker.postgres:
 	docker run --rm -d \
-		--name go-fiber-postgres \
+		--name fiber-rest-api-postgres \
 		--network dev-network \
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=password \
@@ -54,10 +58,14 @@ docker.postgres:
 
 docker.redis:
 	docker run --rm -d \
-		--name go-fiber-redis \
+		--name fiber-rest-api-redis \
 		--network dev-network \
 		-p 6379:6379 \
 		redis
+# end of run service with make file command
+
+# run service with docker compose
+docker.run.with.compose: docker.fiber.build swag run-docker-compose
 
 docker.stop: docker.stop.fiber docker.stop.postgres docker.stop.redis
 
@@ -73,7 +81,13 @@ docker.stop.redis:
 swag:
 	swag init
 
-# run in local machine using docker-compose
+run-docker-compose:
+	docker-compose -f docker-compose.yml up
+
+stop-docker-compose:
+	docker stop fiber-rest-api-postgres fiber-rest-api-redis
+
+# run in local machine using docker-compose-dependencies
 run-dependencies:
 	docker-compose -f docker-compose-dependencies.yml up
 
@@ -82,6 +96,7 @@ stop-dependencies:
 
 run-local:
 	go run main.go
+# end of run in local machine using docker-compose-dependencies
 
 # test in local machine using docker-compose
 run-test-dependencies:
@@ -92,3 +107,4 @@ stop-test-dependencies:
 
 run-test:
 	go test -v -cover ./...
+# end of test in local machine using docker-compose

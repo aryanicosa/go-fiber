@@ -35,9 +35,9 @@ func (q *BookQueries) CreateBook(b *models.Book) error {
 }
 
 // GetBooks method for getting all books.
-func (q *BookQueries) GetBooks() ([]models.Book, error) {
+func (q *BookQueries) GetBooks() ([]*models.Book, error) {
 	// Define books variable.
-	books := []models.Book{}
+	books := []*models.Book{}
 
 	// Send query to database.
 	err := q.DB.Table("books").Find(&books).Error

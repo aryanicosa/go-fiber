@@ -34,14 +34,16 @@ func GetBooks(c *fiber.Ctx) error {
 
 	var booksForPublic []models.BookForPublic
 	for _, book := range books {
-		bookForPublic := models.BookForPublic{
-			ID:         book.ID,
-			Title:      book.Title,
-			Author:     book.Author,
-			BookStatus: book.BookStatus,
-			BookAttrs:  book.BookAttrs,
+		arrBookForPublic := []models.BookForPublic{
+			{
+				ID:         book.ID,
+				Title:      book.Title,
+				Author:     book.Author,
+				BookStatus: book.BookStatus,
+				BookAttrs:  book.BookAttrs,
+			},
 		}
-		booksForPublic = append(booksForPublic, bookForPublic)
+		booksForPublic = arrBookForPublic
 	}
 
 	allBooks := &models.AllBooks{
