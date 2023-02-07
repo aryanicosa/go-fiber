@@ -1,6 +1,6 @@
 # Building GO rest api using Fiber, PostgreSQL, redis and docker
 
-Run Service Locally
+# Run Service Locally
 1. git clone [this repo](https://github.com/aryanicosa/go-fiber)
 2. Install Make, Docker and the following useful Go tools to your system:
    - golang-migrate/migrate for apply migrations
@@ -15,6 +15,13 @@ Run Service Locally
 **Result**
 ![img.png](img.png)
 
+
+# Development Flow, run with testing:
+- Create some changes
+- in terminal run: make run-test-dependencies
+- open other terminal run: make run
+- If all good, commit changes and push to github
+-
 # TODO list:
 - Database
   - Simplify database connection and init to be once for all (p1)
@@ -31,11 +38,11 @@ Run Service Locally
   - generate correct and easy to use swagger api (done)
   - consistence response body and response error (done)
 - Dockerfile
-  - create correct dockerfile (p2)
+  - create correct dockerfile (done)
 - Makefile
   - create correct makefile (done)
 - Docker-compose
-  - create correct docker compose file, upload image to docker hub (p3)
+  - create correct docker compose file, build and upload image to docker hub (p3)
   - create docker-compose-test.yml file (done)
   - create docker-compose-dependencies.yml file for local development (done)
 - Response
@@ -43,9 +50,3 @@ Run Service Locally
 - Deploy and host go-fiber web app
   - CI/CD - github action
   - Heroku/gcp/else
-
-Development Flow:
-- Create some changes
-- in terminal run: make run-test-dependencies
-- open other terminal run: make run
-- If all good, commit changes and push to github
