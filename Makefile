@@ -2,7 +2,7 @@
 
 APP_NAME=server
 BUILD_DIR=$(PWD)/build
-BUILDER_IMAGE=go-fiber-service-builder
+BUILDER_IMAGE=go-fiber
 
 swag:
 	swag init
@@ -56,7 +56,7 @@ docker.postgres:
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=password \
 		-e POSTGRES_DB=postgres \
-		-v ${PWD}/dev-postgres/data/:/var/lib/postgresql/data \
+		-v ${PWD}/postgres/data/:/var/lib/postgresql/data \
 		-p 5432:5432 \
 		postgres
 
