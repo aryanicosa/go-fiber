@@ -31,6 +31,7 @@ run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
 # end of run local development only using "make run"
 
+####################################
 # run service with make file command
 docker.run: docker.network docker.postgres docker.redis swag docker.fiber
 
@@ -66,14 +67,18 @@ docker.redis:
 		-p 6379:6379 \
 		redis
 # end of run service with make file command
+####################################
 
 # run service: go-fiber-app, postgres, and redis with docker compose
-docker.run.with.compose: swag run-docker-compose docker.fiber
+docker.run.with.compose: swag run-docker-compose
 
 docker.stop: docker.stop.fiber docker.stop.postgres docker.stop.redis
 
+run-docker-compose:
+	docker-compose -f docker-compose.yml up
+
 docker.stop.fiber:
-	docker stop go-fiber
+	docker stop $(BUILDER_IMAGE)
 
 docker.stop.postgres:
 	docker stop go-fiber-postgres
@@ -81,11 +86,8 @@ docker.stop.postgres:
 docker.stop.redis:
 	docker stop go-fiber-redis
 
-run-docker-compose:
-	docker-compose -f docker-compose.yml up
-
 stop-docker-compose:
-	docker stop fiber-rest-api-postgres fiber-rest-api-redis
+	docker stop fiber-rest-api-postgres fiber-rest-api-redis fiber-rest-api-service
 
 # run in local machine using docker-compose-dependencies
 run-dependencies:
