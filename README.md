@@ -2,7 +2,7 @@
 
 # Run Service Locally
 1. git clone [this repo](https://github.com/aryanicosa/go-fiber)
-2. Install Make, Docker and the following useful Go tools to your system:
+2. Install Make, Docker, Docker Compose and the following useful Go tools to your system:
    - golang-migrate/migrate for apply migrations
    - github.com/swaggo/swag for auto-generating Swagger API docs
    - github.com/securego/gosec for checking Go security issues
@@ -21,7 +21,7 @@
 - in terminal run: make run-test-dependencies
 - open other terminal run: make run
 - If all good, commit changes and push to github
--
+
 # TODO list:
 - Database
   - Simplify database connection and init to be once for all (p1)
@@ -32,7 +32,7 @@
 - Utility
   - Create token expire and credential checker function (p3)
 - Testing
-  - create clean and correct testing (p1) : only open testing db once
+  - create clean and correct testing (done) : only open testing db once
   - automate testing with Github action (done)
 - Swagger doc
   - generate correct and easy to use swagger api (done)

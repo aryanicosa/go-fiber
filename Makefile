@@ -4,6 +4,9 @@ APP_NAME=server
 BUILD_DIR=$(PWD)/build
 BUILDER_IMAGE=go-fiber-service-builder
 
+swag:
+	swag init
+
 # run local development only
 clean:
 	rm -rf ./build
@@ -26,7 +29,7 @@ build: test
 
 run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
-# end of run local development only
+# end of run local development only using "make run"
 
 # run service with make file command
 docker.run: docker.network docker.postgres docker.redis swag docker.fiber
@@ -64,8 +67,8 @@ docker.redis:
 		redis
 # end of run service with make file command
 
-# run service with docker compose
-docker.run.with.compose: docker.fiber.build swag run-docker-compose
+# run service: go-fiber-app, postgres, and redis with docker compose
+docker.run.with.compose: swag run-docker-compose docker.fiber
 
 docker.stop: docker.stop.fiber docker.stop.postgres docker.stop.redis
 
@@ -77,9 +80,6 @@ docker.stop.postgres:
 
 docker.stop.redis:
 	docker stop go-fiber-redis
-
-swag:
-	swag init
 
 run-docker-compose:
 	docker-compose -f docker-compose.yml up
