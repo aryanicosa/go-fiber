@@ -2,7 +2,7 @@
 
 APP_NAME=server
 BUILD_DIR=$(PWD)/build
-BUILDER_IMAGE=go-fiber
+BUILDER_IMAGE=aryanicosa/go-fiber
 
 swag:
 	swag init
@@ -33,7 +33,7 @@ run: swag build
 
 ####################################
 # run service with make file command
-docker.run: docker.network docker.postgres docker.redis swag docker.fiber
+docker.run: docker.network docker.postgres docker.redis swag docker.fiber.build docker.fiber
 
 docker.network:
 	docker network inspect dev-network >/dev/null 2>&1 || \
@@ -42,7 +42,7 @@ docker.network:
 docker.fiber.build:
 	docker build -t $(BUILDER_IMAGE) .
 
-docker.fiber: docker.fiber.build
+docker.fiber:
 	docker run --rm -d \
 		--name fiber-rest-api-service \
 		--network dev-network \

@@ -13,6 +13,8 @@ RUN go mod download -x
 # Copy the code into the container.
 COPY . .
 
+COPY sql $HOME/sql
+
 # Set necessary environment variables needed for our image and build the API server.
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 RUN go build -ldflags="-s -w" -o server . # run is the same as run a command in terminal
