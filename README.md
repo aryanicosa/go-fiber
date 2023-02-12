@@ -49,4 +49,5 @@
   - create constants for type of error response (done)
 - Deploy and host go-fiber web app
   - CI/CD - github action
-  - Heroku/gcp/else
+  - aws -> http://ec2-52-91-120-237.compute-1.amazonaws.com/swagger/
+  ![img_1.png](img_1.png)
