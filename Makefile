@@ -56,7 +56,7 @@ docker.postgres:
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=password \
 		-e POSTGRES_DB=postgres \
-		-v ${PWD}/postgres/data/:/var/lib/postgresql/data \
+		-v ${PWD}/dev-postgres/data/:/var/lib/postgresql/data \
 		-p 5432:5432 \
 		postgres
 
