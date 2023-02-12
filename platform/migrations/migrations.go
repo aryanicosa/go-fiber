@@ -12,7 +12,6 @@ import (
 )
 
 func Migrate(source string) error {
-	sourceStr := fmt.Sprintf("%s", source) // "///" means absolute path "//" mean relative path
 	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
@@ -29,7 +28,7 @@ func Migrate(source string) error {
 	if err != nil {
 		log.Fatal("fail to get db driver")
 	}
-	m, err := migrate.NewWithDatabaseInstance(sourceStr, "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(source, "postgres", driver)
 	if err != nil {
 		log.Fatal(err)
 		return err
