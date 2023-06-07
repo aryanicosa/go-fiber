@@ -1,13 +1,14 @@
-.PHONY: clean critic security lint test build run swag run-dependencies run-test-dependencies
+.PHONY: clean critic security lint test build run swag run-test-dependencies
 
-APP_NAME=server
+APP_NAME=service
 BUILD_DIR=$(PWD)/build
 BUILDER_IMAGE=aryanicosa/go-fiber
+REVISION_ID?=$(shell cat version.json | jq -r .version)
 
 swag:
 	swag init
 
-# run local development only
+# run go only local machine
 clean:
 	rm -rf ./build
 
@@ -25,7 +26,7 @@ test: clean critic security lint
 	go tool cover -func=cover.out
 
 build: test
-	CGO_ENABLED=0 go build -ldflags="-w -s" -o $(BUILD_DIR)/$(APP_NAME) main.go
+	CGO_ENABLED=0 go build -ldflags="-w -s" -o $(BUILD_DIR)/$(APP_NAME) .
 
 run: swag build
 	$(BUILD_DIR)/$(APP_NAME)
@@ -33,21 +34,21 @@ run: swag build
 
 ####################################
 # run service with make file command
+docker.fiber.build:
+	docker build -t $(BUILDER_IMAGE):$(REVISION_ID) .
+
 docker.run: docker.network docker.postgres docker.redis swag docker.fiber.build docker.fiber
 
 docker.network:
 	docker network inspect dev-network >/dev/null 2>&1 || \
 	docker network create -d bridge dev-network
 
-docker.fiber.build:
-	docker build -t $(BUILDER_IMAGE) .
-
 docker.fiber:
 	docker run --rm -d \
 		--name fiber-rest-api-service \
 		--network dev-network \
 		-p 8080:8080 \
-		$(BUILDER_IMAGE)
+		$(BUILDER_IMAGE):$(REVISION_ID)
 
 docker.postgres:
 	docker run --rm -d \
@@ -70,38 +71,19 @@ docker.redis:
 ####################################
 
 # run service: go-fiber-app, postgres, and redis with docker compose
-docker.run.with.compose: swag run-docker-compose
+docker.run.compose: swag run-docker-compose
 
 docker.stop: docker.stop.fiber docker.stop.postgres docker.stop.redis
 
 run-docker-compose:
 	docker-compose -f docker-compose.yml up
 
-docker.stop.fiber:
-	docker stop $(BUILDER_IMAGE)
+docker.stop.compose:
+	docker stop fiber-rest-api-service fiber-rest-api-postgres fiber-rest-api-redis
+# end of run service: go-fiber-app, postgres, and redis with docker compose
 
-docker.stop.postgres:
-	docker stop go-fiber-postgres
-
-docker.stop.redis:
-	docker stop go-fiber-redis
-
-stop-docker-compose:
-	docker stop fiber-rest-api-postgres fiber-rest-api-redis fiber-rest-api-service
-
-# run in local machine using docker-compose-dependencies
-run-dependencies:
-	docker-compose -f docker-compose-dependencies.yml up
-
-stop-dependencies:
-	docker stop fiber-rest-api-postgres fiber-rest-api-redis
-
-run-local:
-	go run main.go
-# end of run in local machine using docker-compose-dependencies
-
-# test in local machine using docker-compose
-run-test-dependencies:
+# test in local machine using docker-compose-test
+start-test-dependencies:
 	docker-compose -f docker-compose-test.yml up
 
 stop-test-dependencies:
