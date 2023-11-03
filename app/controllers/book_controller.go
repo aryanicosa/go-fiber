@@ -101,9 +101,6 @@ func GetBook(c *fiber.Ctx) error {
 // @Failure 500 {object} response.HTTPError
 // @Router /v1/book [post]
 func CreateBook(c *fiber.Ctx) error {
-	// Get now time.
-	now := time.Now().Unix()
-
 	// Get claims from JWT.
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
@@ -111,22 +108,11 @@ func CreateBook(c *fiber.Ctx) error {
 		return response.RespondError(c, fiber.StatusNotFound, err.Error())
 	}
 
-	// Set expiration time from JWT data of current book.
-	expires := claims.Expires
+	// Set credential needed `book:delete` from JWT data of current book.
+	credentialNeed := repository.BookCreateCredential
 
-	// Checking, if now time greater than expiration from JWT.
-	if now > expires {
-		// Return status 401 and unauthorized error message.
-		return response.RespondError(c, fiber.StatusUnauthorized, "unauthorized or expired token")
-	}
-
-	// Set credential `book:create` from JWT data of current book.
-	credential := claims.Credentials[repository.BookCreateCredential]
-
-	// Only user with `book:create` credential can create a new book.
-	if !credential {
-		// Return status 403 and permission denied error message.
-		return response.RespondError(c, fiber.StatusForbidden, "permission denied, credential not eligible")
+	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError != false {
+		return response.RespondError(c, errorCode, errorMessage)
 	}
 
 	// Create new Book struct
@@ -186,9 +172,6 @@ func UpdateBook(c *fiber.Ctx) error {
 		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	// Get now time.
-	now := time.Now().Unix()
-
 	// Get claims from JWT.
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
@@ -196,22 +179,11 @@ func UpdateBook(c *fiber.Ctx) error {
 		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	// Set expiration time from JWT data of current book.
-	expires := claims.Expires
+	// Set credential needed `book:delete` from JWT data of current book.
+	credentialNeed := repository.BookUpdateCredential
 
-	// Checking, if now time greater than expiration from JWT.
-	if now > expires {
-		// Return status 401 and unauthorized error message.
-		return response.RespondError(c, fiber.StatusUnauthorized, "unauthorized or expired token")
-	}
-
-	// Set credential `book:update` from JWT data of current book.
-	credential := claims.Credentials[repository.BookUpdateCredential]
-
-	// Only book creator with `book:update` credential can update his book.
-	if !credential {
-		// Return status 403 and permission denied error message.
-		return response.RespondError(c, fiber.StatusForbidden, "permission denied, credential not eligible")
+	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError != false {
+		return response.RespondError(c, errorCode, errorMessage)
 	}
 
 	// Create new Book struct
@@ -284,9 +256,6 @@ func DeleteBook(c *fiber.Ctx) error {
 		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	// Get now time.
-	now := time.Now().Unix()
-
 	// Get claims from JWT.
 	claims, err := utils.ExtractTokenMetadata(c)
 	if err != nil {
@@ -294,22 +263,11 @@ func DeleteBook(c *fiber.Ctx) error {
 		return response.RespondError(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	// Set expiration time from JWT data of current book.
-	expires := claims.Expires
+	// Set credential needed `book:delete` from JWT data of current book.
+	credentialNeed := repository.BookDeleteCredential
 
-	// Checking, if now time greater than expiration from JWT.
-	if now > expires {
-		// Return status 401 and unauthorized error message.
-		return response.RespondError(c, fiber.StatusUnauthorized, "unauthorized or expired token")
-	}
-
-	// Set credential `book:delete` from JWT data of current book.
-	credential := claims.Credentials[repository.BookDeleteCredential]
-
-	// Only book creator with `book:delete` credential can delete his book.
-	if !credential {
-		// Return status 403 and permission denied error message.
-		return response.RespondError(c, fiber.StatusForbidden, "permission denied, credential not eligible")
+	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError != false {
+		return response.RespondError(c, errorCode, errorMessage)
 	}
 
 	// Checking, if book with given ID is exists.
@@ -337,4 +295,27 @@ func DeleteBook(c *fiber.Ctx) error {
 		// Return status 403 and permission denied error message.
 		return response.RespondError(c, fiber.StatusForbidden, "permission denied, only the creator can delete this book")
 	}
+}
+
+func bookClaimCheck(claims *utils.TokenMetadata, credentialNeeded string) (bool, int, interface{}) {
+	now := time.Now().Unix()
+
+	// Set expiration time from JWT data of current book.
+	expires := claims.Expires
+
+	// Checking, if now time greater than expiration from JWT.
+	if now > expires {
+		// Return status 401 and unauthorized error message.
+		return true, fiber.StatusUnauthorized, "unauthorized or expired token"
+	}
+
+	isValidCredential := claims.Credentials[credentialNeeded]
+
+	// Only book creator with `book:delete` credential can delete his book.
+	if !isValidCredential {
+		// Return status 403 and permission denied error message.
+		return true, fiber.StatusForbidden, "permission denied, credential not eligible"
+	}
+
+	return false, 0, ""
 }
