@@ -111,7 +111,7 @@ func CreateBook(c *fiber.Ctx) error {
 	// Set credential needed `book:delete` from JWT data of current book.
 	credentialNeed := repository.BookCreateCredential
 
-	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError != false {
+	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError {
 		return response.RespondError(c, errorCode, errorMessage)
 	}
 
@@ -182,7 +182,7 @@ func UpdateBook(c *fiber.Ctx) error {
 	// Set credential needed `book:delete` from JWT data of current book.
 	credentialNeed := repository.BookUpdateCredential
 
-	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError != false {
+	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError {
 		return response.RespondError(c, errorCode, errorMessage)
 	}
 
@@ -266,7 +266,7 @@ func DeleteBook(c *fiber.Ctx) error {
 	// Set credential needed `book:delete` from JWT data of current book.
 	credentialNeed := repository.BookDeleteCredential
 
-	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError != false {
+	if isError, errorCode, errorMessage := bookClaimCheck(claims, credentialNeed); isError {
 		return response.RespondError(c, errorCode, errorMessage)
 	}
 
