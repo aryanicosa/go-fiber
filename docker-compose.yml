@@ -12,7 +12,7 @@ services:
       - postgres
       - redis
     volumes:
-      - ${PWD:-./}:/build
+      - app-build-data:/build
 
   postgres:
     image: postgres:12
@@ -24,8 +24,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgres
-#    volumes:
-#      - ${PWD}/build/dev-postgres/data/:/var/lib/postgresql/data
+    volumes:
+      - db-data:/var/lib/postgresql/data
 
   redis:
     image: redis:5-alpine
@@ -35,3 +35,7 @@ services:
     environment:
       - REDIS_HOST=fiber-rest-api-redis
       - REDIS_DB_NUMBER=0
+
+volumes:
+  app-build-data:
+  db-data:
